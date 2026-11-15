@@ -20,6 +20,9 @@ module.exports = async (req, res) => {
       const cmds = [['SREM', 'players', pid], ['HDEL', 'first', pid], ['HDEL', 'src', pid], ['HDEL', 'plat', pid], ['DEL', 'pdays:' + pid]];
       STEPS.forEach((s) => cmds.push(['SREM', 'step:' + s, pid]));
       (days || []).forEach((d) => { cmds.push(['SREM', 'active:' + d, pid]); cmds.push(['HDEL', 'mins:' + d, pid]); });
+      const [ks] = await pipe([['SMEMBERS', 'pk:' + pid]]);
+      (ks || []).forEach((k) => { cmds.push(['ZREM', 'disc:' + k, pid]); cmds.push(['SREM', 'own:' + k, pid]); });
+      cmds.push(['DEL', 'pk:' + pid], ['HDEL', 'pseudo', pid]);
       await pipe(cmds);
       return res.status(204).end();
     }
