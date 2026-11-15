@@ -446,7 +446,7 @@ function giveLove(k,n,feed){const f=S.found[k];if(f.egg&&f.h){toast('Chut… '+n
 function evolve(k){const f=S.found[k];clearStage();mode='view';cur=new P(k,f.st);scene.add(cur.root);cur.assemble(performance.now());frame(cur.top,cur.s.w+3);flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go');
 for(let i=0;i<24;i++)puff([0xFFD95A,0xFF7FA0,0xFFFFFF][i%3],new THREE.Vector3(0,4,1),new THREE.Vector3((Math.random()-.5)*22,8+Math.random()*10,(Math.random()-.5)*8),1.6,18,0.5);
 toast(nameOf(k)+' a grandi ! Il est maintenant <b>'+STAGES[f.st]+'</b>'+(f.st==2?'<br>Il peut fusionner ✦':''));info(k);refreshCard(k);updateTuto();track(f.st==2?'maj':'grand');setTimeout(checkMissions,2400)}
-function hatch(k){const f=S.found[k];f.egg=false;f.hatch=0;f.slU=0;f.fat=0;f.last=Date.now();f.lost=0;const first=!f.h;f.h=true;if(first){track('eclos');if(f.p)track('mystere')}if(first&&f.p)S.hatched=(S.hatched||0)+1;save();clearStage();mode='view';setTimeout(checkMissions,3200);
+function hatch(k){const f=S.found[k];f.egg=false;f.hatch=0;f.slU=0;f.fat=0;f.last=Date.now();f.lost=0;const first=!f.h;f.h=true;if(first){track('eclos');setTimeout(jCheckTier,10);if(f.p)track('mystere')}if(first&&f.p)S.hatched=(S.hatched||0)+1;save();clearStage();mode='view';setTimeout(checkMissions,3200);
 if(first){const D=genEgg(k);for(let i=0;i<30;i++){const v=D.out[i*7%D.out.length];puff(i%4?0xFFF6E6:v.c,new THREE.Vector3(0,5,1),new THREE.Vector3((Math.random()-.5)*22,7+Math.random()*10,(Math.random()-.5)*10),1.5,18,0.6)}}else{for(let i=0;i<34;i++)puff(i%3?0xD6ECFF:0xFFFFFF,new THREE.Vector3((Math.random()-.5)*8,4+Math.random()*8,2),new THREE.Vector3((Math.random()-.5)*24,4+Math.random()*12,(Math.random()-.5)*10),1.3,14,0.45)}
 flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go');cur=new P(k,f.st,0);scene.add(cur.root);cur.assemble(performance.now());frame(cur.top,cur.s.w+3);renderGarden();info(k);
 if(first){enterFS();frame(cur.top,cur.s.w+3);setTimeout(()=>birthBanner(k),900)}else{track('reveil');toast('Debout ! '+nameOf(k)+' se réveille,<br>toujours '+STAGES[f.st]+' ♥')}}
@@ -644,31 +644,41 @@ let J=null,jToastT=0;
 function jToast(t){jtoast.innerHTML=t;jtoast.style.opacity=1;clearTimeout(jToastT);jToastT=setTimeout(()=>jtoast.style.opacity=0,1800)}
 function jVox(A){const m=new THREE.InstancedMesh(GEO,MAT,A.length);A.forEach(([x,y,z,sx,sy,sz,c],i)=>{dm.position.set(x,y,z);dm.rotation.set(0,0,0);dm.scale.set(sx,sy,sz);dm.updateMatrix();m.setMatrixAt(i,dm.matrix);m.setColorAt(i,col.set(STYLE=='nb'?gray(c):c))});m.instanceColor.needsUpdate=true;return m}
 function jPick(){const all=S.order.filter(k=>S.found[k].h||S.found[k].egg);const eggs=all.filter(k=>S.found[k].egg&&!S.found[k].h);const pl=all.filter(k=>S.found[k].h);pl.sort((a,b)=>(S.found[b].st-S.found[a].st)||(S.found[b].rank-S.found[a].rank));return{pl:pl.slice(0,40),eggs:eggs.slice(0,6)}}
-function openJardin(){if(J)return;track('jardin');const {pl,eggs}=jPick();const n=pl.length;const R=Math.max(42,Math.sqrt(n)*15);const C=5;
+const JNEW=['','des fleurs et deux arbres','des rochers','des champignons géants','une cascade','le Grand Arbre de Mamalune','des lanternes'];
+const jTier=()=>Math.min(6,Math.floor(S.order.filter(k=>S.found[k].h).length/10));
+function jCheckTier(){const t=jTier();if(S.jt==null){S.jt=t;save();return}if(t>S.jt){S.jt=t;S.jNew=t;save();setTimeout(()=>toast('🌱 Ton jardin s\'agrandit !<br>Nouveau : '+JNEW[t]),4500)}}
+function openJardin(){if(J)return;track('jardin');const {pl,eggs}=jPick();const n=pl.length;if(S.jt==null)S.jt=jTier();const T=jTier();const R=34+T*12;const C=5;
 const sc=new THREE.Scene();sc.add(new THREE.AmbientLight(0xffffff,0.62));const l1=new THREE.DirectionalLight(0xffffff,0.75);l1.position.set(30,60,40);sc.add(l1);const l2=new THREE.DirectionalLight(0xbfc6ff,0.3);l2.position.set(-30,-10,-30);sc.add(l2);
 const rd=new THREE.WebGLRenderer({antialias:true,alpha:true});rd.setPixelRatio(Math.min(devicePixelRatio,2));jarHost.appendChild(rd.domElement);
 const cm=new THREE.PerspectiveCamera(40,1,1,2000);
-const pond={x:-R*0.32,z:-R*0.3,r:R*0.2},fruit={x:R*0.45,z:-R*0.35},sad={x:-R*0.55,z:R*0.5},nest={x:R*0.5,z:R*0.45};
-const trees=[[fruit.x,fruit.z,1],[-R*0.62,-R*0.05,0],[R*0.1,-R*0.7,0],[R*0.72,R*0.05,0]];
+const pond={x:-R*0.32,z:-R*0.3,r:R*0.2},fruit={x:R*0.45,z:-R*0.35},sad={x:-R*0.6,z:R*0.3},nest={x:R*0.5,z:R*0.45};
+const trees=[[fruit.x,fruit.z,1]];if(T>=1)trees.push([-R*0.62,-R*0.05,0],[R*0.1,-R*0.7,0]);if(T>=3)trees.push([R*0.75,R*0.05,0]);const extra=[];
 // sol
 const G=[];const hsh=(a,b)=>(Math.imul(a+99,73856093)^Math.imul(b+99,19349663))>>>0;const NC=Math.ceil(R/C)+1;
 for(let i=-NC;i<=NC;i++)for(let j=-NC;j<=NC;j++){const x=i*C,z=j*C;const d=Math.hypot(x,z);const h=hsh(i,j);if(d>R+(h%3)*1.5)continue;const inP=Math.hypot(x-pond.x,z-pond.z)<pond.r;const edge=d>R-C;
 if(inP){G.push([x,-0.5-C/2-0.6,z,C,C,C,(h%4==0)?0x6FB8FF:0x5AA8F5])}else{const gc=[0x7BCB6A,0x6FC060,0x86D375,0x74C566][h%4];G.push([x,-0.5-C/2,z,C,C,C,gc])}
 if(edge||inP)G.push([x,-0.5-C*1.5-(inP?0.6:0),z,C,C,C,0x9C6A40]);if(edge)G.push([x,-0.5-C*2.5,z,C*0.8,C,C*0.8,0x7E5434]);
-if(!inP&&!edge&&h%11==0){const fc=[0xFF8FB0,0xFFE066,0xFFFFFF,0xB79BFF][h%4];G.push([x+((h>>4)%3-1),0.1,z+((h>>6)%3-1),0.9,0.9,0.9,fc]);G.push([x+((h>>4)%3-1),-0.35,z+((h>>6)%3-1),0.3,0.5,0.3,0x4E9A45])}}
+if(T>=1&&!inP&&!edge&&h%11==0){const fc=[0xFF8FB0,0xFFE066,0xFFFFFF,0xB79BFF][h%4];G.push([x+((h>>4)%3-1),0.1,z+((h>>6)%3-1),0.9,0.9,0.9,fc]);G.push([x+((h>>4)%3-1),-0.35,z+((h>>6)%3-1),0.3,0.5,0.3,0x4E9A45])}}
 trees.forEach(([x,z,f])=>{for(let y=0;y<4;y++)G.push([x,y*2+0.5,z,2,2,2,0x9C6A40]);const lc=f?[0x5DBB63,0x4FAE57]:[0x6FC060,0x5DBB63];for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++)for(let c=0;c<3;c++){if(Math.abs(a)+Math.abs(b)+c>4)continue;const h=hsh(a*7+c,b*5);G.push([x+a*2,9+c*2,z+b*2,2,2,2,lc[h%2]]);if(f&&c<2&&h%5==0&&(Math.abs(a)==2||Math.abs(b)==2))G.push([x+a*2.4,8.2+c*2,z+b*2.4,1.2,1.2,1.2,0xE8463C])}});
+// paliers
+const B=(x,y,z,sx,sy,sz,c)=>G.push([x,y,z,sx,sy,sz,c]);
+if(T>=2)[[0.1,0.7],[-0.75,-0.5],[0.78,-0.05]].forEach(([u,v],i)=>{const x=u*R,z=v*R;B(x,1,z,5,3,4,0x9AA0AE);B(x+2.5,0.5,z+1.5,3,2,3,0xB4B9C5);B(x-1,3,z,3,2,3,0xC3C8D2);extra.push({x,z,r:5})});
+if(T>=3)[[-0.35,0.25],[0.55,-0.62]].forEach(([u,v])=>{const x=u*R,z=v*R;B(x,2.5,z,2,6,2,0xFFF3D6);B(x,6,z,7,2,7,0xE8463C);B(x,7.2,z,4,1,4,0xE8463C);[[-2,-2],[2,1],[0,2.6],[-2.6,1]].forEach(([a,b])=>B(x+a,7.1,z+b,1,0.6,1,0xFFFFFF));extra.push({x,z,r:5})});
+if(T>=4){const dx=-0.5,dz=0.866,x=dx*R*0.93,z=dz*R*0.93;B(x,2,z,5,5,5,0x9AA0AE);B(x,5.5,z,4,2,4,0xB4B9C5);for(let y=0;y<9;y++)B(x+dx*4,4-y*3.2,z+dz*4,3,3.2,1.5+((y%2)*0.5),y%2?0x8FD3FF:0x6FB8FF);B(x+dx*2,4.6,z+dz*2,3,0.6,3,0x6FB8FF);extra.push({x,z,r:5})}
+if(T>=5){const x=R*0.05,z=R*0.05;for(let y=0;y<5;y++)B(x,y*3+1.5,z,4,3,4,0x8A5A36);for(let a=-3;a<=3;a++)for(let b=-3;b<=3;b++)for(let c=0;c<3;c++){if(Math.abs(a)+Math.abs(b)+c*1.5>5)continue;B(x+a*3,17+c*3,z+b*3,3,3,3,(a+b+c)%2?0x6FC060:0x5DBB63)}for(let a=0;a<10;a++){const t=a/10*Math.PI*2;if(t>2.2&&t<4.1)continue;B(x+Math.cos(t)*3,28+Math.sin(t)*3,z,1.4,1.4,1.4,0xFFE066)}extra.push({x,z,r:8})}
+if(T>=6)for(let a=0;a<10;a++){const t=a/10*Math.PI*2+0.3,x=Math.cos(t)*R*0.88,z=Math.sin(t)*R*0.88;if(Math.hypot(x-pond.x,z-pond.z)<pond.r+4)continue;B(x,2,z,0.8,5,0.8,0x7E5434);B(x,5,z,1.6,1.6,1.6,0xFFE27A)}
 // nid des œufs
 if(eggs.length)for(let a=0;a<12;a++){const t=a/12*Math.PI*2;G.push([nest.x+Math.cos(t)*7,0,nest.z+Math.sin(t)*7,2,1.2,2,0xC9A06A])}
 sc.add(jVox(G));
 const shGeo=new THREE.CircleGeometry(1,20),shMat=new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:0.16,depthWrite:false});
-const obst=[{x:pond.x,z:pond.z,r:pond.r+4},...trees.map(([x,z])=>({x,z,r:6}))];
+const obst=[{x:pond.x,z:pond.z,r:pond.r+4},...trees.map(([x,z])=>({x,z,r:6})),...extra];
 const ok=(x,z,r)=>Math.hypot(x,z)<R-r-3&&!obst.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+r);
 const rnd=r=>{for(let i=0;i<40;i++){const a=Math.random()*Math.PI*2,d=Math.sqrt(Math.random())*(R-r-4);const x=Math.cos(a)*d,z=Math.sin(a)*d;if(ok(x,z,r))return{x,z}}return{x:0,z:0}};
 const A=pl.map((k,i)=>{const f=S.found[k];const md=f.egg&&f.h?3:moodOf(f);const p=new P(k,f.st,md);sc.add(p.root);const r=p.s.w+1.5;const s0=rnd(r);p.root.position.set(s0.x,0,s0.z);const sh=new THREE.Mesh(shGeo,shMat);sh.rotation.x=-Math.PI/2;sh.scale.setScalar(r);sh.position.set(s0.x,-0.45,s0.z);sc.add(sh);
 return{k,p,f,r,x:s0.x,z:s0.z,hd:Math.random()*6.28,tg:null,wait:Math.random()*2,md,st:f.st,sh,lastHop:0,zz:Math.random()*1000}});
 const E=eggs.map((k,i)=>{const e=new Egg(k);const t=i/Math.max(1,eggs.length)*Math.PI*2;e.root.position.set(nest.x+Math.cos(t)*3*(eggs.length>1),0,nest.z+Math.sin(t)*3*(eggs.length>1));e.root.scale.setScalar(0.6);sc.add(e.root);return e});
-J={sc,rd,cm,R,A,E,pond,fruit,sad,parts:[],hc:{},affT:0,th:0.6,ph:0.78,dist:R*(innerWidth<innerHeight?3.3:2.3),last:performance.now(),press:null,raf:0};
-jAff();jarEl.classList.add('on');document.getElementById('jcount').textContent=pl.length+' Plopi'+(pl.length>1?'s':'')+(S.order.filter(k=>S.found[k].h).length>pl.length?' (les 40 plus grands)':'');jResize();J.raf=requestAnimationFrame(jLoop)}
+J={sc,rd,cm,R,A,E,pond,fruit,sad,obst,parts:[],hc:{},affT:0,th:0.6,ph:0.78,dist:(R+18)*(innerWidth<innerHeight?3.1:2.2),last:performance.now(),press:null,raf:0};
+jAff();jarEl.classList.add('on');document.getElementById('jcount').textContent='Niveau '+(T+1)+' · '+pl.length+' Plopi'+(pl.length>1?'s':'')+(S.order.filter(k=>S.found[k].h).length>pl.length?' (les 40 plus grands)':'');jResize();J.raf=requestAnimationFrame(jLoop);if(S.jNew){const t=S.jNew;S.jNew=0;save();setTimeout(()=>jToast('🌱 Nouveau : '+JNEW[t]+' !'),600)}else if(T<6)setTimeout(()=>J&&jToast('Prochain agrandissement à '+((T+1)*10)+' Plopis 🌱'),600)}
 function jRel(a,b){const fa=a.f,fb=b.f;if(fa.p&&fa.p.includes(b.k))return 1;if(fb.p&&fb.p.includes(a.k))return 1;if(fa.p&&fb.p&&fa.p.some(x=>fb.p.includes(x)))return 1;return 0}
 function jAff(){const A=J.A,n=A.length;J.M=A.map((a,i)=>A.map((b,j)=>{if(i==j)return null;const af=affinity(a.k,b.k);return{af,fam:jRel(a,b),w:(jRel(a,b)?3:0)+(af-50)/15}}));J.affT=performance.now()}
 function closeJardin(){if(!J)return;cancelAnimationFrame(J.raf);J.rd.dispose();J.rd.domElement.remove();J=null;jarEl.classList.remove('on');if(S.sel!=null){showSel();renderGarden()}}
@@ -683,7 +693,7 @@ if(isHung(f)&&Math.random()<0.8){const t=Math.random()*6.28;return{x:J.fruit.x+M
 if(isSad(f)&&Math.random()<0.85){return{x:J.sad.x+(Math.random()-.5)*10,z:J.sad.z+(Math.random()-.5)*10}}
 const i=J.A.indexOf(a);if(J.M&&Math.random()<0.75){let tot=0;const c=[];J.A.forEach((b,j)=>{if(j==i)return;const m=J.M[i][j];if(m.w<=0.3)return;const w=Math.exp(m.w*0.9);tot+=w;c.push([b,w])});if(tot>0){let r=Math.random()*tot;for(const [b,w] of c){r-=w;if(r<=0){const t=Math.random()*6.28,d=a.r+b.r+2+Math.random()*3;return{x:b.x+Math.cos(t)*d,z:b.z+Math.sin(t)*d,to:b}}}}}
 return rnd2(a.r)}
-function rnd2(r){const R=J.R;for(let i=0;i<30;i++){const t=Math.random()*6.28,d=Math.sqrt(Math.random())*(R-r-4);const x=Math.cos(t)*d,z=Math.sin(t)*d;if(Math.hypot(x-J.pond.x,z-J.pond.z)>J.pond.r+r+4)return{x,z}}return{x:0,z:0}}
+function rnd2(r){const R=J.R;for(let i=0;i<30;i++){const t=Math.random()*6.28,d=Math.sqrt(Math.random())*(R-r-4);const x=Math.cos(t)*d,z=Math.sin(t)*d;if(!J.obst.some(o=>Math.hypot(x-o.x,z-o.z)<o.r+r))return{x,z}}return{x:0,z:0}}
 function jLoop(now){if(!J)return;J.raf=requestAnimationFrame(jLoop);const dt=Math.min(0.05,(now-J.last)/1000);J.last=now;const R=J.R;
 J.A.forEach(a=>{const f=a.f;// état à jour
 const md=f.egg&&f.h?3:moodOf(f);if(md!==a.md||f.st!==a.st){J.sc.remove(a.p.root);const p=new P(a.k,f.st,md);J.sc.add(p.root);a.p=p;a.md=md;a.st=f.st;a.r=p.s.w+1.5;a.sh.scale.setScalar(a.r);a.tg=null}
@@ -695,7 +705,7 @@ else{a.wait-=dt;if(a.wait<=0){a.tg=jTarget(a);if(!a.tg)a.wait=2}}
 p.update(now,{yaw:a.hd,hop:isSad(f)?0.3:0.9})}});
 // séparation
 if(now-J.affT>30000)jAff();for(let i=0;i<J.A.length;i++)for(let j=i+1;j<J.A.length;j++){const a=J.A[i],b=J.A[j];const dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz)||0.01,mm=J.M[i][j],m=a.r+b.r+(mm.af<35&&!mm.fam?7:0);if(mm.af>=70&&a.st==2&&b.st==2&&a.md!=3&&b.md!=3&&d<a.r+b.r+5&&!a.tg&&!b.tg&&now-(J.hc[i+'-'+j]||0)>9000){J.hc[i+'-'+j]=now;a.hd=Math.atan2(dx,dz);b.hd=Math.atan2(-dx,-dz);a.wait=b.wait=2;a.p.happyEnd=b.p.happyEnd=now+1500;const mid={x:(a.x+b.x)/2,z:(a.z+b.z)/2,p:{top:Math.max(a.p.top,b.p.top)}};jHeart(mid);setTimeout(()=>J&&jHeart(mid),250)}if(d<m){const push=(m-d)/2;const ux=dx/d,uz=dz/d;if(a.md!=3){a.x-=ux*push;a.z-=uz*push}if(b.md!=3){b.x+=ux*push;b.z+=uz*push}}}
-J.A.forEach(a=>{const d=Math.hypot(a.x,a.z),lim=R-a.r-2;if(d>lim){a.x*=lim/d;a.z*=lim/d}const dp=Math.hypot(a.x-J.pond.x,a.z-J.pond.z),pl=J.pond.r+a.r;if(dp<pl&&dp>0){a.x=J.pond.x+(a.x-J.pond.x)/dp*pl;a.z=J.pond.z+(a.z-J.pond.z)/dp*pl}a.p.root.position.x=a.x;a.p.root.position.z=a.z;a.sh.position.set(a.x,-0.45,a.z)});
+J.A.forEach(a=>{const d=Math.hypot(a.x,a.z),lim=R-a.r-2;if(d>lim){a.x*=lim/d;a.z*=lim/d}J.obst.forEach(o=>{const dp=Math.hypot(a.x-o.x,a.z-o.z),pl=o.r+a.r-(o===J.obst[0]?4:2);if(dp<pl&&dp>0){a.x=o.x+(a.x-o.x)/dp*pl;a.z=o.z+(a.z-o.z)/dp*pl}});a.p.root.position.x=a.x;a.p.root.position.z=a.z;a.sh.position.set(a.x,-0.45,a.z)});
 J.E.forEach(e=>e.update(now,{}));
 for(let i=J.parts.length-1;i>=0;i--){const q=J.parts[i],t=(now-q.t0)/1000;if(t>q.life){J.sc.remove(q.o);J.parts.splice(i,1);continue}q.o.position.addScaledVector(q.v,dt);if(q.face)q.o.lookAt(J.cm.position);q.m.opacity=Math.max(0,1-Math.max(0,t-q.life*0.6)/(q.life*0.4))}
 const cy=Math.cos(J.ph),sy=Math.sin(J.ph);J.cm.position.set(Math.sin(J.th)*sy*J.dist,cy*J.dist,Math.cos(J.th)*sy*J.dist);J.cm.lookAt(0,4,0);J.rd.render(J.sc,J.cm)}
