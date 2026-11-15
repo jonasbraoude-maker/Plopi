@@ -667,8 +667,10 @@ const rnd=r=>{for(let i=0;i<40;i++){const a=Math.random()*Math.PI*2,d=Math.sqrt(
 const A=pl.map((k,i)=>{const f=S.found[k];const md=f.egg&&f.h?3:moodOf(f);const p=new P(k,f.st,md);sc.add(p.root);const r=p.s.w+1.5;const s0=rnd(r);p.root.position.set(s0.x,0,s0.z);const sh=new THREE.Mesh(shGeo,shMat);sh.rotation.x=-Math.PI/2;sh.scale.setScalar(r);sh.position.set(s0.x,-0.45,s0.z);sc.add(sh);
 return{k,p,f,r,x:s0.x,z:s0.z,hd:Math.random()*6.28,tg:null,wait:Math.random()*2,md,st:f.st,sh,lastHop:0,zz:Math.random()*1000}});
 const E=eggs.map((k,i)=>{const e=new Egg(k);const t=i/Math.max(1,eggs.length)*Math.PI*2;e.root.position.set(nest.x+Math.cos(t)*3*(eggs.length>1),0,nest.z+Math.sin(t)*3*(eggs.length>1));e.root.scale.setScalar(0.6);sc.add(e.root);return e});
-J={sc,rd,cm,R,A,E,pond,fruit,sad,parts:[],th:0.6,ph:0.78,dist:R*(innerWidth<innerHeight?3.3:2.3),last:performance.now(),press:null,raf:0};
-jarEl.classList.add('on');document.getElementById('jcount').textContent=pl.length+' Plopi'+(pl.length>1?'s':'')+(S.order.filter(k=>S.found[k].h).length>pl.length?' (les 40 plus grands)':'');jResize();J.raf=requestAnimationFrame(jLoop)}
+J={sc,rd,cm,R,A,E,pond,fruit,sad,parts:[],hc:{},affT:0,th:0.6,ph:0.78,dist:R*(innerWidth<innerHeight?3.3:2.3),last:performance.now(),press:null,raf:0};
+jAff();jarEl.classList.add('on');document.getElementById('jcount').textContent=pl.length+' Plopi'+(pl.length>1?'s':'')+(S.order.filter(k=>S.found[k].h).length>pl.length?' (les 40 plus grands)':'');jResize();J.raf=requestAnimationFrame(jLoop)}
+function jRel(a,b){const fa=a.f,fb=b.f;if(fa.p&&fa.p.includes(b.k))return 1;if(fb.p&&fb.p.includes(a.k))return 1;if(fa.p&&fb.p&&fa.p.some(x=>fb.p.includes(x)))return 1;return 0}
+function jAff(){const A=J.A,n=A.length;J.M=A.map((a,i)=>A.map((b,j)=>{if(i==j)return null;const af=affinity(a.k,b.k);return{af,fam:jRel(a,b),w:(jRel(a,b)?3:0)+(af-50)/15}}));J.affT=performance.now()}
 function closeJardin(){if(!J)return;cancelAnimationFrame(J.raf);J.rd.dispose();J.rd.domElement.remove();J=null;jarEl.classList.remove('on');if(S.sel!=null){showSel();renderGarden()}}
 function jResize(){if(!J)return;const w=jarHost.clientWidth,h=jarHost.clientHeight;J.rd.setSize(w,h);J.cm.aspect=w/h;J.cm.updateProjectionMatrix()}
 addEventListener('resize',jResize);
@@ -679,6 +681,7 @@ if(a.md==3)return null;
 if(par){const o=a.k%2?1:-1;return{x:par.x+Math.cos(par.hd+o*1.9)*(par.r+a.r+3),z:par.z+Math.sin(par.hd+o*1.9)*(par.r+a.r+3),follow:true}}
 if(isHung(f)&&Math.random()<0.8){const t=Math.random()*6.28;return{x:J.fruit.x+Math.cos(t)*(9+a.r),z:J.fruit.z+Math.sin(t)*(9+a.r)}}
 if(isSad(f)&&Math.random()<0.85){return{x:J.sad.x+(Math.random()-.5)*10,z:J.sad.z+(Math.random()-.5)*10}}
+const i=J.A.indexOf(a);if(J.M&&Math.random()<0.75){let tot=0;const c=[];J.A.forEach((b,j)=>{if(j==i)return;const m=J.M[i][j];if(m.w<=0.3)return;const w=Math.exp(m.w*0.9);tot+=w;c.push([b,w])});if(tot>0){let r=Math.random()*tot;for(const [b,w] of c){r-=w;if(r<=0){const t=Math.random()*6.28,d=a.r+b.r+2+Math.random()*3;return{x:b.x+Math.cos(t)*d,z:b.z+Math.sin(t)*d,to:b}}}}}
 return rnd2(a.r)}
 function rnd2(r){const R=J.R;for(let i=0;i<30;i++){const t=Math.random()*6.28,d=Math.sqrt(Math.random())*(R-r-4);const x=Math.cos(t)*d,z=Math.sin(t)*d;if(Math.hypot(x-J.pond.x,z-J.pond.z)>J.pond.r+r+4)return{x,z}}return{x:0,z:0}}
 function jLoop(now){if(!J)return;J.raf=requestAnimationFrame(jLoop);const dt=Math.min(0.05,(now-J.last)/1000);J.last=now;const R=J.R;
@@ -691,7 +694,7 @@ if(a.tg){const dx=a.tg.x-a.x,dz=a.tg.z-a.z,d=Math.hypot(dx,dz);const sp=(isSad(f
 else{a.wait-=dt;if(a.wait<=0){a.tg=jTarget(a);if(!a.tg)a.wait=2}}
 p.update(now,{yaw:a.hd,hop:isSad(f)?0.3:0.9})}});
 // séparation
-for(let i=0;i<J.A.length;i++)for(let j=i+1;j<J.A.length;j++){const a=J.A[i],b=J.A[j];const dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz)||0.01,m=a.r+b.r;if(d<m){const push=(m-d)/2;const ux=dx/d,uz=dz/d;if(a.md!=3){a.x-=ux*push;a.z-=uz*push}if(b.md!=3){b.x+=ux*push;b.z+=uz*push}}}
+if(now-J.affT>30000)jAff();for(let i=0;i<J.A.length;i++)for(let j=i+1;j<J.A.length;j++){const a=J.A[i],b=J.A[j];const dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz)||0.01,mm=J.M[i][j],m=a.r+b.r+(mm.af<35&&!mm.fam?7:0);if(mm.af>=70&&a.st==2&&b.st==2&&a.md!=3&&b.md!=3&&d<a.r+b.r+5&&!a.tg&&!b.tg&&now-(J.hc[i+'-'+j]||0)>9000){J.hc[i+'-'+j]=now;a.hd=Math.atan2(dx,dz);b.hd=Math.atan2(-dx,-dz);a.wait=b.wait=2;a.p.happyEnd=b.p.happyEnd=now+1500;const mid={x:(a.x+b.x)/2,z:(a.z+b.z)/2,p:{top:Math.max(a.p.top,b.p.top)}};jHeart(mid);setTimeout(()=>J&&jHeart(mid),250)}if(d<m){const push=(m-d)/2;const ux=dx/d,uz=dz/d;if(a.md!=3){a.x-=ux*push;a.z-=uz*push}if(b.md!=3){b.x+=ux*push;b.z+=uz*push}}}
 J.A.forEach(a=>{const d=Math.hypot(a.x,a.z),lim=R-a.r-2;if(d>lim){a.x*=lim/d;a.z*=lim/d}const dp=Math.hypot(a.x-J.pond.x,a.z-J.pond.z),pl=J.pond.r+a.r;if(dp<pl&&dp>0){a.x=J.pond.x+(a.x-J.pond.x)/dp*pl;a.z=J.pond.z+(a.z-J.pond.z)/dp*pl}a.p.root.position.x=a.x;a.p.root.position.z=a.z;a.sh.position.set(a.x,-0.45,a.z)});
 J.E.forEach(e=>e.update(now,{}));
 for(let i=J.parts.length-1;i>=0;i--){const q=J.parts[i],t=(now-q.t0)/1000;if(t>q.life){J.sc.remove(q.o);J.parts.splice(i,1);continue}q.o.position.addScaledVector(q.v,dt);if(q.face)q.o.lookAt(J.cm.position);q.m.opacity=Math.max(0,1-Math.max(0,t-q.life*0.6)/(q.life*0.4))}
