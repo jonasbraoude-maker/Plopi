@@ -124,12 +124,22 @@ header{display:flex;justify-content:space-between;align-items:center;padding:8px
 #dhand{position:absolute;left:50%;top:60%;width:30px;height:30px;margin-left:-60px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 0 6px rgba(255,107,139,.5);display:none;animation:dh 1.6s ease-in-out infinite}
 @keyframes dh{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(.8);opacity:1}}
 #dmsg{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:14px;font-weight:700;text-shadow:0 2px 4px rgba(0,0,0,.5)}
+body.fs #stage{position:fixed;inset:0;height:auto;min-height:0;z-index:25;background:radial-gradient(ellipse at 50% 35%,#3a43a0 0%,#1b2050 60%,#12163a 100%);animation:fsin .35s ease-out}
+@keyframes fsin{from{opacity:.4;transform:scale(.96)}to{opacity:1;transform:none}}
+body.fs #dbar{top:24%;height:58%;width:36px;margin-left:-18px}
+body.fs #dprog{top:24%;height:58%;width:9px;margin-left:26px}
+body.fs #dheart{font-size:26px;width:28px;height:28px;margin:-14px 0 0 -14px;line-height:28px}
+body.fs #dance .dt{top:max(14px,env(safe-area-inset-top));font-size:20px}
+body.fs #dmsg{bottom:max(26px,env(safe-area-inset-bottom));font-size:16px}
+body.fs #banner{bottom:max(40px,env(safe-area-inset-bottom))}
+#fsx{position:absolute;top:max(10px,env(safe-area-inset-top));right:12px;z-index:3;background:rgba(255,255,255,.12);border:0;color:#fff;font:inherit;font-size:16px;width:34px;height:34px;border-radius:999px;display:none}
+body.fs #fsx{display:block}
 </style>
 </head>
 <body>
 <div id="app">
 <header><div class="logo">Plopi</div><div class="seg" id="seg"><button data-s="nb">N&amp;B</button><button data-s="acc">Accents</button><button data-s="col" class="on">Couleur</button></div></header>
-<div id="stage"><div id="flash"></div><div id="bubble"></div><div id="dance"><div class="dt">Danse de l'amour<small id="daff"></small></div><div id="dbar"><div id="dzone"></div><div id="dheart">♥</div></div><div id="dprog"><i></i></div><div id="dhand"></div><div id="dmsg"></div></div><div id="banner"></div><div id="toast"></div></div>
+<div id="stage"><div id="flash"></div><div id="bubble"></div><button id="fsx" aria-label="Quitter">✕</button><div id="dance"><div class="dt">Danse de l'amour<small id="daff"></small></div><div id="dbar"><div id="dzone"></div><div id="dheart">♥</div></div><div id="dprog"><i></i></div><div id="dhand"></div><div id="dmsg"></div></div><div id="banner"></div><div id="toast"></div></div>
 <div id="info"></div>
 <div id="bar"><button class="barb" id="opendex">Plopidex <span id="dex"></span> ⤢</button><span id="sec"></span></div>
 <div id="garden"></div>
@@ -339,10 +349,10 @@ toast(nameOf(k)+' a grandi ! Il est maintenant <b>'+STAGES[f.st]+'</b>'+(f.st==2
 function hatch(k){const f=S.found[k];f.egg=false;f.hatch=0;f.last=Date.now();f.lost=0;const first=!f.h;f.h=true;save();clearStage();mode='view';
 const D=genEgg(k);for(let i=0;i<30;i++){const v=D.out[i*7%D.out.length];puff(i%4?0xFFF6E6:v.c,new THREE.Vector3(0,5,1),new THREE.Vector3((Math.random()-.5)*22,7+Math.random()*10,(Math.random()-.5)*10),1.5,18,0.6)}
 flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go');cur=new P(k,f.st,0);scene.add(cur.root);cur.assemble(performance.now());frame(cur.top,cur.s.w+3);renderGarden();info(k);
-if(first)setTimeout(()=>birthBanner(k),900);else toast(nameOf(k)+' est ressorti de son œuf !')}
+if(first){enterFS();frame(cur.top,cur.s.w+3);setTimeout(()=>birthBanner(k),900)}else toast(nameOf(k)+' est ressorti de son œuf !')}
 function birthBanner(k){const r=rarityOf(k);const f=S.found[k];if(r>=2){const cs=r==4?[0xFFD95A,0xF0B429,0xFFF1A8]:r==3?[0xE3A6FF,0xFF7EB3,0x8FB4FF]:[0x8FD3FF,0xFFFFFF];for(let i=0;i<(r*14);i++)puff(cs[i%cs.length],new THREE.Vector3(0,6,1),new THREE.Vector3((Math.random()-.5)*26,10+Math.random()*12,(Math.random()-.5)*10),1.8,18,0.5)}
 banEl.innerHTML='<div class="bn"><div class="nm">C\'est '+nameOf(k)+' !<span class="new">Nouveau !</span></div><div class="nb">'+numOf(k)+' · '+STARS(r)+' '+RNAME[r]+(f.sec?' · Recette secrète !':'')+'</div>'+(f.p?'<div class="nb" style="font-size:12px;opacity:.7">'+nameOf(f.p[0])+' et '+nameOf(f.p[1])+' peuvent de nouveau fusionner</div>':'')+'<div class="row"><button class="bt bt2" id="share">Partager</button><button class="bt bt1" id="ok">Super !</button></div></div>';banEl.classList.add('on');
-document.getElementById('ok').onclick=()=>banEl.classList.remove('on');
+document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');exitFS();frame(cur.top,cur.s.w+3)};
 document.getElementById('share').onclick=()=>{const txt='J\'ai fait éclore '+nameOf(k)+' '+numOf(k)+' '+'★'.repeat(r)+' sur Plopi ! Et toi, tu as quoi ?';try{navigator.clipboard.writeText(txt).then(()=>toast('Copié ! Colle-le où tu veux'),()=>toast(txt))}catch(e){toast(txt)}}}
 // ================= modes =================
 let mode='view',cur=null,mg=null,touching=false,fx=0,fy=0,downT=0,moved=0,lx=0,ly=0;
@@ -362,9 +372,12 @@ function affinity(a,b){const na=special(a),nb=special(b);const used=pairN(a,b)*1
 const ga=decode(a),gb=decode(b);let v=60;for(const s of['h','b','i','e','c'])if(ga[s]===gb[s])v+=10;if((FIRE(ga)&&WATER(gb))||(WATER(ga)&&FIRE(gb)))v-=45;if(ga.h==4&&gb.h==4)v-=30;
 const ma=moodOf(S.found[a]),mb=moodOf(S.found[b]);if(ma==0&&mb==0)v+=10;if(ma>=1||mb>=1)v-=20;v-=used;return Math.max(10,Math.min(95,v))}
 const SULK=60000;
+document.getElementById('fsx').onclick=e=>{e.stopPropagation();banEl.classList.remove('on');if(mode=='dance'||mode=='merge'){if(mode=='merge'&&mg&&mg.C&&!mg.done)return;exitFS();showSel()}else{exitFS();if(cur)frame(cur.top,cur.s.w+3)}};
+function enterFS(){if(!document.body.classList.contains('fs')){document.body.classList.add('fs');resize()}}
+function exitFS(){if(document.body.classList.contains('fs')){document.body.classList.remove('fs');resize()}}
 const danceEl=document.getElementById('dance'),dzone=document.getElementById('dzone'),dheart=document.getElementById('dheart'),dprogI=document.querySelector('#dprog i'),dmsg=document.getElementById('dmsg');let dn=null,holding=false;
 function merge(a,b){if(mode=='merge'||mode=='dance')return;const key=[a,b].sort().join('-');S.sulk=S.sulk||{};const sl=S.sulk[key];if(sl&&Date.now()-sl<SULK){toast('Ils boudent encore…<br>Réessaie dans '+Math.ceil((SULK-(Date.now()-sl))/1000)+' s');return}
-clearStage();mode='dance';banEl.classList.remove('on');const now=performance.now();const A=new P(a,2),B=new P(b,2);A.root.scale.setScalar(0.5);B.root.scale.setScalar(0.5);A.root.position.x=-7;B.root.position.x=7;scene.add(A.root);scene.add(B.root);tY=4;tD=Math.max(8/T,12/(T*cam.aspect));
+clearStage();mode='dance';banEl.classList.remove('on');enterFS();const now=performance.now();const A=new P(a,2),B=new P(b,2);A.root.scale.setScalar(0.5);B.root.scale.setScalar(0.5);A.root.position.x=-7;B.root.position.x=7;scene.add(A.root);scene.add(B.root);tY=4;tD=Math.max(8/T,12/(T*cam.aspect));
 const af=affinity(a,b),easy=!S.danced,q=easy?1:(af-10)/85;dn={a,b,A,B,af,easy,started:false,grace:0,t0:Infinity,zone:0.13+0.23*q,zy:0.5,zv:0,hy:0.5,ht:0.5,nextT:0,nerv:0.42+0.88*q,spd:1.6-1.0*q,prog:0.3,inside:false,done:null,x:7};
 const pn=pairN(a,b);document.getElementById('daff').textContent=nameOf(a)+' + '+nameOf(b)+' · affinité '+af+' %'+(pn?' · déjà '+pn+(pn>1?' enfants':' enfant')+' ensemble, la flamme s\'use':'');danceEl.classList.add('on');document.getElementById('dhand').style.display=easy?'block':'none';dmsg.textContent='Maintiens le doigt pour commencer';
 infoEl.innerHTML='<div class="nm">'+nameOf(a)+' + '+nameOf(b)+'</div><div class="sub">Garde son cœur dans la zone rose pour qu\'ils dansent</div>'}
@@ -376,7 +389,7 @@ if(D.prog>=1){D.done={ok:true,t:now};S.danced=true;save()}else if(D.prog<=0){D.d
 else if(!D.started)dmsg.textContent=D.easy?'Maintiens le doigt : la zone rose monte. Relâche : elle descend. Garde le cœur dedans !':'Maintiens le doigt pour commencer';
 dzone.style.height=(D.zone*100)+'%';dzone.style.bottom=((D.zy-D.zone/2)*100)+'%';dheart.style.top=((1-D.hy)*100)+'%';dprogI.style.height=(D.prog*100)+'%';
 const target=6.5-3*D.prog;D.x+=(target-D.x)*0.1;A.root.position.x=-D.x;B.root.position.x=D.x;
-if(D.done&&!D.done.ok){A.update(now,{yaw:-1.3,hop:0});B.update(now,{yaw:1.3,hop:0});if(now-D.done.t>300&&!D.shown){D.shown=1;danceEl.classList.remove('on');banEl.innerHTML='<div class="bn"><div class="nm" style="font-size:19px">Ils boudent…</div><div class="nb" style="font-size:12px;opacity:.75">La danse n\'a pas pris. Réessaie dans 1 minute, ou soigne-les pour augmenter leur affinité.</div><div class="row"><button class="bt bt1" id="ok">D\'accord</button></div></div>';banEl.classList.add('on');document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');dn=null;showSel()}}return}
+if(D.done&&!D.done.ok){A.update(now,{yaw:-1.3,hop:0});B.update(now,{yaw:1.3,hop:0});if(now-D.done.t>300&&!D.shown){D.shown=1;danceEl.classList.remove('on');banEl.innerHTML='<div class="bn"><div class="nm" style="font-size:19px">Ils boudent…</div><div class="nb" style="font-size:12px;opacity:.75">La danse n\'a pas pris. Réessaie dans 1 minute, ou soigne-les pour augmenter leur affinité.</div><div class="row"><button class="bt bt1" id="ok">D\'accord</button></div></div>';banEl.classList.add('on');document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');dn=null;exitFS();showSel()}}return}
 if(D.done&&D.done.ok){danceEl.classList.remove('on');dn=null;mode='merge';mg={t0:now,A,B,C:null,a:D.a,b:D.b,fail:null,res:breed(D.a,D.b),done:false,x0:D.x};infoEl.innerHTML='<div class="nm">Coup de foudre !</div><div class="sub">'+nameOf(D.a)+' + '+nameOf(D.b)+'</div>';return}
 if(D.inside&&now>=D.t0){const ph=now/170;A.update(now,{yaw:0.6+Math.sin(ph)*0.35,baseY:Math.abs(Math.sin(ph))*1.4,hop:0});B.update(now,{yaw:-0.6-Math.sin(ph)*0.35,baseY:Math.abs(Math.cos(ph))*1.4,hop:0});A.happyEnd=B.happyEnd=now+150;if(D.prog>0.6)A.blushEnd=B.blushEnd=now+300}
 else{A.update(now,{yaw:0.25,hop:0});B.update(now,{yaw:-0.25,hop:0})}}
@@ -398,7 +411,7 @@ if(mg.C)mg.C.update(now,{touching,fx,fy});
 if(t>2.4&&!mg.done){mg.done=true;finishMerge()}}
 function finishMerge(){const k=mg.res.k;S.pairs=S.pairs||{};const pk=[mg.a,mg.b].sort().join('-');S.pairs[pk]=(S.pairs[pk]||0)+1;const isNew=addFound(k,[mg.a,mg.b]);[mg.a,mg.b].forEach(x=>{S.found[x].last=Date.now();S.found[x].lost=0});if(isNew&&mg.res.secret)S.found[k].sec=true;if(!isNew){S.found[k].love=Math.min((S.found[k].st<2?LV[S.found[k].st]-1:0),S.found[k].love+5)}if(mg.res.secret)S.secrets[mg.res.secret.n]=1;S.sel=k;if(S.tuto<2)S.tuto=2;save();hideTuto();
 banEl.innerHTML='<div class="bn"><div class="nm">'+(isNew?'Un œuf mystère !':nameOf(k))+'</div><div class="nb" style="font-size:13px;opacity:.8">'+(isNew?'Touche-le '+HATCH+' fois pour le faire éclore.<br>En attendant, '+nameOf(mg.a)+' et '+nameOf(mg.b)+' le couvent et ne peuvent pas fusionner.':'Déjà dans ton Plopidex : +5 ♥ pour lui')+'</div><div class="row"><button class="bt bt1" id="ok">D\'accord</button></div></div>';banEl.classList.add('on');
-document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');showSel()};
+document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');exitFS();showSel()};
 renderGarden();infoEl.innerHTML='<div class="nm">'+dname(k)+'</div>'}
 // ================= toucher (scène) =================
 function toWorld(cx,cy){const r=stageEl.getBoundingClientRect();const vh=2*camD*T,vw=vh*cam.aspect;fx=((cx-r.left)/r.width-0.5)*vw;fy=camY+(0.5-(cy-r.top)/r.height)*vh}
