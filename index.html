@@ -393,7 +393,7 @@ function save(){try{localStorage.setItem('plopi-hyb-v3',JSON.stringify(S))}catch
 function addFound(k,parents){if(S.found[k]){S.found[k].n++;return false}S.order.push(k);S.found[k]={rank:S.order.length,n:1,p:parents||null,st:0,love:0,fed:0,d:Date.now(),egg:true,hatch:0,h:false,last:Date.now(),lost:0};return true}
 const needH=f=>f.egg&&f.h?[1,2,3][f.st]:(f.need||HATCH);
 if(!S.order.length){BASES.forEach(b=>{const k=code(b.g);addFound(k);const f=S.found[k];if(b.n==='Lunio'){f.need=3}else{f.h=true;f.egg=false}});S.sel=code(BASES[4].g);save()}
-const SLP=TST?2*60e3:90*60e3,NAP=TST?[20e3,60e3]:[10*60e3,30*60e3],PLAYMAX=[6,12];
+const SLP=TST?60e3:45*60e3,NAP=TST?[10e3,30e3]:[5*60e3,15*60e3],PLAYMAX=[6,12];
 for(const k in S.found){const f=S.found[k];if(f.last==null)f.last=Date.now();if(f.fedL==null)f.fedL=f.last;if(f.egg&&f.h&&!f.slU)f.slU=Date.now()+SLP;if(f.egg&&f.h&&!f.slS)f.slS=Date.now();if(f.h==null)f.h=true;if(f.egg==null)f.egg=false;if(f.hatch==null)f.hatch=0;if(f.lost==null)f.lost=0}
 const isSad=f=>Date.now()-f.last>=MOOD[0],isHung=f=>Date.now()-(f.fedL||f.last)>=MOOD[0];
 const moodOf=f=>f.egg?3:(isSad(f)?1:0)+(isHung(f)?1:0);
