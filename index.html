@@ -621,10 +621,11 @@ document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');exitFS()
 renderGarden();infoEl.innerHTML='<div class="nm">'+dname(k)+'</div>'}
 // ================= toucher (scène) =================
 function toWorld(cx,cy){const r=stageEl.getBoundingClientRect();const vh=2*camD*T,vw=vh*cam.aspect;fx=((cx-r.left)/r.width-0.5)*vw;fy=camY+(0.5-(cy-r.top)/r.height)*vh}
-stageEl.addEventListener('pointerdown',e=>{holding=true;if(mode=='dance'&&dn&&!dn.started){const n=performance.now();dn.started=true;dn.t0=n;dn.grace=n+2000;document.getElementById('dhand').style.display='none'}if(e.target.closest('.bt'))return;touching=true;downT=performance.now();moved=0;lx=e.clientX;ly=e.clientY;toWorld(e.clientX,e.clientY)});
+stageEl.addEventListener('pointerdown',e=>{holding=true;if(mode=='dance'&&dn&&!dn.started){const n=performance.now();dn.started=true;dn.t0=n;dn.grace=n+2000;document.getElementById('dhand').style.display='none'}if(e.target.closest('.bt'))return;touching=true;downT=performance.now();moved=0;lx=e.clientX;ly=e.clientY;sx0=e.clientX;sy0=e.clientY;try{stageEl.setPointerCapture(e.pointerId)}catch(_){}toWorld(e.clientX,e.clientY)});
+let sx0=0,sy0=0;function navSel(dir){const o=S.order;if(o.length<2||S.sel==null)return;const i=o.indexOf(S.sel);const k=o[(i+dir+o.length)%o.length];select(k);if(cur){cur.slideX=dir*22;cur.root.position.x=cur.slideX}const c=gardenEl.querySelector('.card[data-k="'+k+'"]');if(c&&c.scrollIntoView)c.scrollIntoView({block:'nearest',behavior:'smooth'})}
 stageEl.addEventListener('pointermove',e=>{if(!touching)return;moved+=Math.abs(e.clientX-lx)+Math.abs(e.clientY-ly);lx=e.clientX;ly=e.clientY;toWorld(e.clientX,e.clientY)});
 addEventListener('pointerup',()=>{holding=false});addEventListener('pointercancel',()=>{holding=false});
-stageEl.addEventListener('pointerup',e=>{touching=false;if(mode=='dance'||sg)return;if(cur&&cur.mood==3&&mode=='view'&&!e.target.closest('.bt')&&moved<12){cur.hopT=performance.now();giveLove(S.sel,1);return}const now=performance.now();if(moved<12&&now-downT<400&&cur&&!cur.asm&&!e.target.closest('.bt')){cur.tap(now);if(mode=='view'&&now-lastLove>450){lastLove=now;giveLove(S.sel,1)}if(S.tuto<1){S.tuto=1;save();updateTuto()}}});
+stageEl.addEventListener('pointerup',e=>{touching=false;if(mode=='dance'||sg)return;{const dx=e.clientX-sx0,dy=e.clientY-sy0;if(mode=='view'&&!document.body.classList.contains('fs')&&performance.now()-downT<700&&Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.5&&!e.target.closest('.bt')){navSel(dx<0?1:-1);return}}if(cur&&cur.mood==3&&mode=='view'&&!e.target.closest('.bt')&&moved<12){cur.hopT=performance.now();giveLove(S.sel,1);return}const now=performance.now();if(moved<12&&now-downT<400&&cur&&!cur.asm&&!e.target.closest('.bt')){cur.tap(now);if(mode=='view'&&now-lastLove>450){lastLove=now;giveLove(S.sel,1)}if(S.tuto<1){S.tuto=1;save();updateTuto()}}});
 stageEl.addEventListener('pointerleave',()=>{touching=false});
 // ================= glisser-déposer =================
 const ghost=document.getElementById('ghost');let press=null,drag=null,tgt=null;
@@ -815,7 +816,7 @@ jarHost.addEventListener('wheel',e=>{if(!J)return;e.preventDefault();J.dist=Math
 document.getElementById('jx').onclick=()=>{closeJardin();setHalf()};
 
 function loop(now){requestAnimationFrame(loop);if(J&&!J.mini)return;
-if(mode=='dance'&&dn)danceTick(now);else if(mode=='merge'&&mg)mergeTick(now);else if(cur){cur.update(now,{touching,fx,fy});if(cur.mood==3&&now-lastZz>1100){lastZz=now;zzz(cur)}}
+if(mode=='dance'&&dn)danceTick(now);else if(mode=='merge'&&mg)mergeTick(now);else if(cur){cur.update(now,{touching,fx,fy});if(cur.slideX){cur.slideX*=0.8;if(Math.abs(cur.slideX)<0.05)cur.slideX=0;cur.root.position.x=cur.slideX}if(cur.mood==3&&now-lastZz>1100){lastZz=now;zzz(cur)}}
 for(let i=parts.length-1;i>=0;i--){const p=parts[i],t=(now-p.t0)/1000;if(t>p.life){scene.remove(p.o);parts.splice(i,1);continue}const dt=1/60;p.v.y-=p.grav*dt;p.o.position.addScaledVector(p.v,dt);p.o.rotation.y+=p.spin*dt;p.o.rotation.x+=p.spin*0.5*dt;p.m.opacity=Math.max(0,1-Math.max(0,t-p.life*0.6)/(p.life*0.4))}
 camY+=(tY-camY)*0.08;camD+=(tD-camD)*0.08;cam.position.set(0,camY+camD*0.16,camD);cam.lookAt(0,camY,0);
 tutoTick(now);renderer.render(scene,cam)}
