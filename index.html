@@ -93,8 +93,8 @@ const STAGES=['Bébé','Grand','Majestueux'],LV=[10,20];
 const code=g=>g.h+NH*(g.b+NBo*(g.i+NI*(g.e+NE*g.c)));
 const decode=k=>{const g={};g.h=k%NH;k=Math.floor(k/NH);g.b=k%NBo;k=Math.floor(k/NBo);g.i=k%NI;k=Math.floor(k/NI);g.e=k%NE;g.c=Math.floor(k/NE);return g};
 const special=k=>SPECIAL.find(s=>code(s.g)===k);
-const PRE=['Plo','Lu','Pé','Fla','Roy','Zi','Nua'],SUF=['nio','oufi','dodo','chou','zou','pois'],END=['','','','','','','-ti','-fu'];
-function nameOf(k){const s=special(k);if(s)return s.n;const g=decode(k);return PRE[g.h]+SUF[g.b]+END[g.i]+(g.c==11?' d\'or':'')}
+const PRE=['Plo','Lu','Pé','Fla','Roy','Zi','Nua'],CB=['m','n','d','ch','z','p'],VI=['i','ou','a','o','u','é','ai','eu'],CE=['l','b','k','r'],VC2=['a','i','o','ou','é','u','an','on','in','ia','y','or'];
+function nameOf(k){const s=special(k);if(s)return s.n;const g=decode(k);let n=PRE[g.h]+CB[g.b]+VI[g.i]+CE[g.e]+VC2[g.c];if(SPECIAL.some(x=>x.n===n))n+='-bis';return n}
 const fmt=n=>n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 function numOf(k){const s=special(k);if(s)return '#'+String(s.num).padStart(3,'0');return '#'+fmt(k+31)}
 const isMut=g=>MUT.h.includes(g.h)||MUT.b.includes(g.b)||MUT.i.includes(g.i)||MUT.e.includes(g.e)||MUT.c.includes(g.c);
@@ -208,9 +208,9 @@ const THUMB={};
 function thumb(k,si){const key=k+'_'+si+STYLE;if(THUMB[key])return THUMB[key];const p=new P(k,si);p.root.rotation.y=-0.38;sc2.add(p.root);const t=Math.max(p.top,si==0?9:si==1?13:17);c2.position.set(0,t*0.62,t*1.95+4);c2.lookAt(0,t*0.43,0);r2.render(sc2,c2);sc2.remove(p.root);return THUMB[key]=r2.domElement.toDataURL()}
 // ================= état =================
 let S={found:{},order:[],secrets:{},sel:null,tuto:0,style:'col'};
-try{const raw=localStorage.getItem('plopi-hyb-v2');if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
+try{const raw=localStorage.getItem('plopi-hyb-v3');if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
 STYLE=S.style||'col';
-function save(){try{localStorage.setItem('plopi-hyb-v2',JSON.stringify(S))}catch(e){}}
+function save(){try{localStorage.setItem('plopi-hyb-v3',JSON.stringify(S))}catch(e){}}
 function addFound(k,parents){if(S.found[k]){S.found[k].n++;return false}S.order.push(k);S.found[k]={rank:S.order.length,n:1,p:parents||null,st:0,love:0,fed:0};return true}
 if(!S.order.length){BASES.forEach(b=>addFound(code(b.g)));S.sel=code(BASES[4].g);save()}
 // ================= interface =================
