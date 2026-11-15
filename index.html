@@ -216,7 +216,7 @@ function colorOf(v,g){const B=COLORS[g.c];switch(v.t){case'b':return STYLE=='col
 // ================= Plopi 3D =================
 const GEO=new THREE.BoxGeometry(0.94,0.94,0.94),SG=new THREE.BoxGeometry(0.55,0.55,0.55),HG=new THREE.BoxGeometry(0.5,0.5,0.5),MAT=new THREE.MeshLambertMaterial(),col=new THREE.Color(),dm=new THREE.Object3D();
 const ease=p=>{const c1=1.4,c3=c1+1;return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2)};
-class P{constructor(k,si){this.k=k;this.si=si;const D=this.D=genVox(k,si),g=this.g=D.g,s=this.s=D.s;this.root=new THREE.Group();this.inner=new THREE.Group();this.root.add(this.inner);
+class P{constructor(k,si){this.k=k;this.si=si;const D=this.D=genVox(k,si),g=this.g=D.g,s=this.s=D.s;this.root=new THREE.Group();this.root.userData.plopi=1;this.inner=new THREE.Group();this.root.add(this.inner);
 this.base=D.out.map(v=>colorOf(v,g));const m=this.mesh=new THREE.InstancedMesh(GEO,MAT,D.out.length);this.tg=D.out.map(v=>new THREE.Vector3(v.x,v.y+1,v.z));
 this.tg.forEach((t,i)=>{dm.position.copy(t);dm.scale.setScalar(1);dm.updateMatrix();m.setMatrixAt(i,dm.matrix);m.setColorAt(i,col.set(this.base[i]))});m.instanceColor.needsUpdate=true;this.inner.add(m);
 const am=new THREE.MeshLambertMaterial({color:STYLE=='col'?dark(COLORS[g.c],0.82):LIMB});
@@ -255,7 +255,7 @@ const scene=new THREE.Scene();const cam=new THREE.PerspectiveCamera(35,1,0.1,400
 scene.add(new THREE.AmbientLight(0xffffff,0.6));const dl=new THREE.DirectionalLight(0xffffff,0.75);dl.position.set(6,12,10);scene.add(dl);const dl2=new THREE.DirectionalLight(0xbfc6ff,0.35);dl2.position.set(-6,-2,-6);scene.add(dl2);
 const shd=new THREE.Mesh(new THREE.CircleGeometry(1,32),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:0.18}));shd.rotation.x=-Math.PI/2;shd.position.y=-0.55;shd.scale.setScalar(6);scene.add(shd);
 const T=Math.tan(17.5*Math.PI/180);let camY=5,camD=30,tY=5,tD=30;
-function frame(top,half){tY=top*0.44;tD=Math.max((top*0.5+2.5)/T,(half+2)/(T*cam.aspect))}
+function frame(top,half){tY=top*0.44;tD=1.12*Math.max((top*0.5+2.5)/T,(half+2.5)/(T*cam.aspect))}
 function resize(){const w=stageEl.clientWidth,h=stageEl.clientHeight;renderer.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix();if(cur&&mode=='view')frame(cur.top,cur.s.w+3)}
 addEventListener('resize',resize);
 const parts=[];
@@ -294,7 +294,7 @@ for(let i=0;i<24;i++)puff([0xFFD95A,0xFF7FA0,0xFFFFFF][i%3],new THREE.Vector3(0,
 toast(nameOf(k)+' a grandi ! Il est maintenant <b>'+STAGES[f.st]+'</b>'+(f.st==2?'<br>Il peut fusionner ✦':''));info(k);refreshCard(k);updateTuto()}
 // ================= modes =================
 let mode='view',cur=null,mg=null,touching=false,fx=0,fy=0,downT=0,moved=0,lx=0,ly=0;
-function clearStage(){if(cur){scene.remove(cur.root);cur=null}if(mg){[mg.A,mg.B,mg.C].forEach(p=>p&&scene.remove(p.root));mg=null}}
+function clearStage(){if(cur){scene.remove(cur.root);cur=null}if(mg){[mg.A,mg.B,mg.C].forEach(p=>p&&scene.remove(p.root));mg=null}for(let i=scene.children.length-1;i>=0;i--){const o=scene.children[i];if(o.userData.plopi)scene.remove(o)}}
 function showSel(){clearStage();mode='view';const f=S.found[S.sel];cur=new P(S.sel,f.st);scene.add(cur.root);frame(cur.top,cur.s.w+3);info(S.sel);banEl.classList.remove('on')}
 function select(k){S.sel=k;save();showSel();cur.hopT=performance.now();gardenEl.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',+c.dataset.k===k))}
 function breed(a,b){const ga=decode(a),gb=decode(b);const na=special(a),nb=special(b);
@@ -313,7 +313,7 @@ let x;if(t<0.9){const p=t/0.9;x=7-5*p*p}else if(t<1.6){const p=(t-0.9)/0.7;x=2+5
 A.root.position.x=-x;B.root.position.x=x;const hp=t<0.9?Math.abs(Math.sin(t*Math.PI*3.3))*1.6:0;const away=t>0.9;A.update(now,{yaw:away?-1.2:0.7,baseY:hp,hop:0});B.update(now,{yaw:away?1.2:-0.7,baseY:hp,hop:0});
 if(t>0.9&&!mg.burst){mg.burst=true;const cs=mg.fail.t=='eau'?[0xBFC6D6,0xE6EAF2,0x9AA3B8]:[0xFF4D6D,0xFFD95A,0xFF8A2E];for(let i=0;i<30;i++)puff(cs[i%3],new THREE.Vector3(0,5,1),new THREE.Vector3((Math.random()-.5)*10,4+Math.random()*7,(Math.random()-.5)*6),1.8,mg.fail.t=='eau'?-1:14,0.7)}
 if(t>1.7&&!mg.done){mg.done=true;const key=[mg.a,mg.b].sort().join('-');S.fails=S.fails||{};S.fails[key]=1;save();
-banEl.innerHTML='<div class="bn"><div class="nm" style="font-size:19px">'+mg.fail.msg+'</div><div class="nb" style="font-size:12px;opacity:.75">'+mg.fail.sub+'</div><div class="row"><button class="bt bt1" id="ok">D\'accord</button></div></div>';banEl.classList.add('on');document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');mg=null;showSel()}}}
+banEl.innerHTML='<div class="bn"><div class="nm" style="font-size:19px">'+mg.fail.msg+'</div><div class="nb" style="font-size:12px;opacity:.75">'+mg.fail.sub+'</div><div class="row"><button class="bt bt1" id="ok">D\'accord</button></div></div>';banEl.classList.add('on');document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');showSel()}}}
 function mergeTick(now){if(mg.fail)return failTick(now);const t=(now-mg.t0)/1000;const{A,B}=mg;
 if(t<0.9&&A&&B){const p=Math.min(1,t/0.9);const x=7-5*p*p;A.root.position.x=-x;B.root.position.x=x;const hp=Math.abs(Math.sin(t*Math.PI*3.3))*1.6;A.update(now,{yaw:0.7,baseY:hp,hop:0});B.update(now,{yaw:-0.7,baseY:hp,hop:0})}
 else if(!mg.burst){mg.burst=true;scene.remove(A.root);scene.remove(B.root);mg.A=mg.B=null;flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go');
