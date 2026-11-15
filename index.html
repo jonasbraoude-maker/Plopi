@@ -83,6 +83,13 @@ header{display:flex;justify-content:space-between;align-items:center;padding:8px
 #fuseb{border:0;border-radius:999px;font:inherit;font-weight:700;font-size:16px;padding:8px 18px;background:#ff6b8b;color:#fff}
 #fuseb:disabled{opacity:.35}
 .barb{white-space:nowrap;background:rgba(255,255,255,.1);border:0;color:#fff;font:inherit;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px}
+.vtog{display:inline-flex;vertical-align:middle;margin-left:8px;background:rgba(255,255,255,.12);border-radius:999px;padding:2px;pointer-events:auto}
+.vtog button{border:0;background:none;color:inherit;font:inherit;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;opacity:.75}
+.vtog button.on{background:#fff;color:#1b2050;opacity:1}
+.jtop .vtog{background:rgba(27,32,80,.15)}
+.jname{font-size:12px;opacity:.7;display:block;margin-top:2px}
+#jsign{position:absolute;transform:translate(-50%,-100%);background:#8a5a36;color:#fff;border:2px solid #5e3b20;border-radius:8px;font-weight:800;font-size:13px;padding:3px 9px;white-space:nowrap;box-shadow:0 3px 0 #5e3b20}
+.jq{position:absolute;transform:translate(-50%,-100%);font-weight:900;font-size:20px;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.5);pointer-events:none}
 #jardin{position:fixed;inset:0;z-index:32;background:linear-gradient(#8fd3ff,#cfeeff 55%,#e9f7ff);display:none}
 #jardin.on{display:block}
 #jhost{position:absolute;inset:0;touch-action:none}
@@ -178,14 +185,14 @@ body.fs #fsx{display:block}
 <header><div style="display:flex;align-items:center;gap:8px"><div class="logo">Plopi</div><span id="tstb" style="display:none;background:#FFD95A;color:#5a3a00;border-radius:999px;font-size:11px;font-weight:700;padding:1px 8px">MODE TEST</span><button class="x" id="privb" aria-label="Confidentialité" style="width:26px;height:26px;font-size:13px">i</button></div><div class="seg" id="seg"><button data-s="nb">N&amp;B</button><button data-s="acc">Accents</button><button data-s="col" class="on">Couleur</button></div></header>
 <div id="stage"><div id="flash"></div><div id="bubble"></div><button id="fsx" aria-label="Quitter">✕</button><button class="bt" id="wild" aria-label="Œuf sauvage"></button><div id="wildl">Œuf sauvage !</div><div id="dance"><div class="dt">Danse de l'amour<small id="daff"></small></div><div id="dbar"><div id="dzone"></div><div id="dheart">♥</div></div><div id="dprog"><i></i></div><div id="dhand"></div><div id="dmsg"></div></div><div id="zzz" class="zz">Z<small>z</small><small>z</small></div><div id="song"><div id="smsg"></div><div id="keys"></div></div><div id="banner"></div><div id="toast"></div></div>
 <div id="info"></div>
-<div id="bar"><button class="barb" id="opendex">Plopidex <span id="dex"></span> ⤢</button><button class="barb" id="jardb">🌳 Jardin</button><button class="barb" id="misb">Missions</button><span id="sec"></span></div>
+<div id="bar"><button class="barb" id="opendex">Plopidex <span id="dex"></span> ⤢</button><button class="barb" id="misb">Missions</button><span id="sec"></span></div>
 <div id="garden"></div>
 </div>
-<div id="dexov"><div class="dh"><div><div class="t">Plopidex</div><div class="sub" id="dcount" style="font-size:13px;opacity:.7"></div></div><button class="x" id="dclose">✕</button></div>
+<div id="dexov"><div class="dh"><div><div class="t">Plopidex <div class="vtog"><button data-v="cards" class="on">▦ Cartes</button><button data-v="jardin">🌳 Jardin</button></div></div><div class="sub" id="dcount" style="font-size:13px;opacity:.7"></div></div><button class="x" id="dclose">✕</button></div>
 <div class="dtools"><button class="chip on" data-f="all">Tous</button><button class="chip" data-f="maj">Majestueux</button><button class="chip" data-f="rare">★★ et +</button><button class="chip" data-f="wake">Éveillés</button><button class="chip pink" id="dsel">Choisir 2 à fusionner</button></div>
 <div id="dgrid"></div>
 <div id="dact"><div class="sl" id="dslots"></div><button id="fuseb" disabled>Fusionner</button></div></div>
-<div id="jardin"><div id="jhost"></div><div class="jtop"><div><b>Jardin de Mamalune</b><small id="jcount"></small></div><button id="jx" aria-label="Fermer">✕</button></div><div id="jtoast"></div><div class="jhint">Touche : câlin · Appui long : sa fiche · Glisse pour tourner · Pince pour zoomer</div></div><div id="misov"><div class="dh"><div><div class="t">Missions</div><div class="sub" style="font-size:13px;opacity:.7">Chaque mission réussie t'offre l'œuf d'un nouveau natif</div></div><button class="x" id="mclose">✕</button></div><div id="mlist"></div></div>
+<div id="jardin"><div id="jhost"></div><div class="jtop"><div><b>Plopidex <div class="vtog"><button data-v="cards">▦ Cartes</button><button data-v="jardin" class="on">🌳 Jardin</button></div></b><span class="jname">Jardin de Mamalune</span> <small id="jcount"></small></div><button id="jx" aria-label="Fermer">✕</button></div><div id="jlab" style="position:absolute;inset:0;pointer-events:none"></div><button id="jsign">📜 Missions</button><div id="jtoast"></div><div class="jhint">Touche : câlin · Appui long : sa fiche · Glisse pour tourner · Pince pour zoomer</div></div><div id="misov"><div class="dh"><div><div class="t">Missions</div><div class="sub" style="font-size:13px;opacity:.7">Chaque mission réussie t'offre l'œuf d'un nouveau natif</div></div><button class="x" id="mclose">✕</button></div><div id="mlist"></div></div>
 <div id="privov" style="position:fixed;inset:0;z-index:45;background:rgba(8,10,30,.85);display:none;align-items:center;justify-content:center"><div style="background:#20265c;border-radius:20px;padding:18px;width:min(88vw,360px);font-size:14px;line-height:1.45"><div style="font-size:19px;font-weight:700;margin-bottom:6px">Confidentialité</div>Plopi mesure de façon <b>anonyme</b> comment on joue (ouvertures, temps de jeu, éclosions, danses, fusions) pour améliorer le jeu. Aucun nom, aucun email, aucun cookie publicitaire : juste un numéro au hasard gardé sur cet appareil.<div id="privst" style="margin:10px 0;opacity:.8"></div><button class="bt bt1" id="privtog" style="width:100%;margin-top:4px"></button><button class="bt bt2" id="privclose" style="width:100%;margin-top:8px">Fermer</button></div></div>
 <div id="fiche"><div class="dh"><button class="x" id="fback">‹</button><div class="t" style="font-size:17px">Fiche</div><button class="x" id="fclose">✕</button></div><div id="fbody"></div></div>
 <img id="ghost" alt="">
@@ -590,7 +597,7 @@ function tutoTick(now){if(!tutoPair)return;const a=gardenEl.querySelector('.card
 // ================= Plopidex plein écran =================
 const dexov=document.getElementById('dexov'),dgrid=document.getElementById('dgrid'),dact=document.getElementById('dact'),dslots=document.getElementById('dslots'),fuseb=document.getElementById('fuseb'),dselb=document.getElementById('dsel');
 let dFilter='all',dSel=false,dPick=[];
-function openDex(sel){track('plopidex');dSel=!!sel;dPick=[];dexov.classList.add('on');renderDex()}
+function openDex(sel){if(J)closeJardin();track('plopidex');dSel=!!sel;dPick=[];dexov.classList.add('on');renderDex()}
 function closeDex(){dexov.classList.remove('on');dSel=false;dPick=[]}
 function renderDex(){let list=S.order.slice();if(dFilter=='maj')list=list.filter(k=>S.found[k].st==2&&!S.found[k].egg);if(dFilter=='rare')list=list.filter(k=>rarityOf(k)>=2);if(dFilter=='wake')list=list.filter(k=>!S.found[k].egg);
 let h=list.map(k=>{let c=cardHTML(k);const f=S.found[k];const pi=dPick.indexOf(k);if(dSel&&(f.st<2||f.egg||busyWith(k)))c=c.replace('class="card','class="card dim');if(pi>=0)c=c.replace('class="card','class="card pick').replace('</div>','<span class="pickn">'+(pi+1)+'</span></div>');return c}).join('');
@@ -607,7 +614,9 @@ const i=dPick.indexOf(k);if(i>=0)dPick.splice(i,1);else{if(dPick.length==2)dPick
 document.querySelectorAll('.dtools .chip[data-f]').forEach(b=>b.onclick=()=>{dFilter=b.dataset.f;document.querySelectorAll('.dtools .chip[data-f]').forEach(x=>x.classList.toggle('on',x===b));renderDex()});
 dselb.onclick=()=>{dSel=!dSel;dPick=[];if(dSel&&dFilter=='all'){}renderDex()};
 document.getElementById('dclose').onclick=closeDex;
-document.getElementById('opendex').onclick=()=>openDex(false);
+document.getElementById('opendex').onclick=()=>{if(S.dexV=='jardin')openJardin();else openDex(false)};
+document.querySelectorAll('.vtog button').forEach(b=>b.onclick=e=>{e.stopPropagation();const v=b.dataset.v;S.dexV=v;save();if(v=='jardin'&&!J){closeDex();openJardin()}else if(v=='cards'&&J){closeJardin();openDex(false)}});
+document.getElementById('jsign').onclick=e=>{e.stopPropagation();openMissions()};
 fuseb.onclick=()=>{if(dPick.length!=2)return;const[a,b]=dPick;closeDex();tryMerge(a,b)};
 // ================= fiche & arbre =================
 const HN=['Aucun','Bonnet de nuit','Pousse','Flamme','Couronne','Antenne étoile','Nuage'],BN=['Lisse','Rempli d\'eau','Masque de nuit','Braises','Rayures','Pois'],INm=['Aucune','Croissant','Fleur','Goutte','Nuage','Cœur','Étoile','Flamme'],ENm=['Normaux','Endormis','Boudeurs','Étoilés'],CNm=['Lavande','Rose','Bleu','Bleu pâle','Orange','Or','Menthe','Lilas','Pêche','Citron','Corail','Doré légendaire'];
@@ -630,7 +639,7 @@ const partners={};kids.forEach(x=>{const o=S.found[x].p[0]===k?S.found[x].p[1]:S
 h+='<div class="sec"><h3>Ses enfants ('+kids.length+')</h3>'+(pl?'<div class="sub" style="opacity:.6;font-size:12px;margin:-2px 0 6px">Avec : '+pl+'</div>':'')+(kids.length?'<div class="kidsrow">'+kids.map(x=>tnode(x,56)).join('')+'</div>':'<div class="sub" style="opacity:.55;font-size:13px">Pas encore d\'enfant. Quand il sera Majestueux, fais-le fusionner !</div>')+'</div>';
 h+='<div class="fbtns"><button class="fb1" id="fshow">Afficher</button><button class="fb2" id="ffuse" '+(f.st<2||f.egg||busyWith(k)?'disabled':'')+'>Fusionner avec…</button></div>';
 fbody.innerHTML=h;fbody.scrollTop=0;ficheEl.classList.add('on');
-document.getElementById('fshow').onclick=()=>{closeFiche();closeDex();select(k)};
+document.getElementById('fshow').onclick=()=>{closeFiche();closeDex();if(J)closeJardin();select(k)};
 document.getElementById('ffuse').onclick=()=>{if(f.st<2||f.egg||busyWith(k))return;closeFiche();openDex(true);dPick=[k];renderDex()}}
 function closeFiche(){ficheEl.classList.remove('on');fStack=[]}
 fbody.addEventListener('click',e=>{const n=e.target.closest('.tnode');if(!n)return;const k=+n.dataset.k;if(k===fStack[fStack.length-1])return;if(S.found[k])openFiche(k)});
@@ -650,7 +659,7 @@ function jCheckTier(){const t=jTier();if(S.jt==null){S.jt=t;save();return}if(t>S
 function openJardin(){if(J)return;track('jardin');const {pl,eggs}=jPick();const n=pl.length;if(S.jt==null)S.jt=jTier();const T=jTier();const R=34+T*12;const C=5;
 const sc=new THREE.Scene();sc.add(new THREE.AmbientLight(0xffffff,0.62));const l1=new THREE.DirectionalLight(0xffffff,0.75);l1.position.set(30,60,40);sc.add(l1);const l2=new THREE.DirectionalLight(0xbfc6ff,0.3);l2.position.set(-30,-10,-30);sc.add(l2);
 const rd=new THREE.WebGLRenderer({antialias:true,alpha:true});rd.setPixelRatio(Math.min(devicePixelRatio,2));jarHost.appendChild(rd.domElement);
-const cm=new THREE.PerspectiveCamera(40,1,1,2000);
+const cm=new THREE.PerspectiveCamera(28,1,1,3000);
 const pond={x:-R*0.32,z:-R*0.3,r:R*0.2},fruit={x:R*0.45,z:-R*0.35},sad={x:-R*0.6,z:R*0.3},nest={x:R*0.5,z:R*0.45};
 const trees=[[fruit.x,fruit.z,1]];if(T>=1)trees.push([-R*0.62,-R*0.05,0],[R*0.1,-R*0.7,0]);if(T>=3)trees.push([R*0.75,R*0.05,0]);const extra=[];
 // sol
@@ -677,11 +686,14 @@ const rnd=r=>{for(let i=0;i<40;i++){const a=Math.random()*Math.PI*2,d=Math.sqrt(
 const A=pl.map((k,i)=>{const f=S.found[k];const md=f.egg&&f.h?3:moodOf(f);const p=new P(k,f.st,md);sc.add(p.root);const r=p.s.w+1.5;const s0=rnd(r);p.root.position.set(s0.x,0,s0.z);const sh=new THREE.Mesh(shGeo,shMat);sh.rotation.x=-Math.PI/2;sh.scale.setScalar(r);sh.position.set(s0.x,-0.45,s0.z);sc.add(sh);
 return{k,p,f,r,x:s0.x,z:s0.z,hd:Math.random()*6.28,tg:null,wait:Math.random()*2,md,st:f.st,sh,lastHop:0,zz:Math.random()*1000}});
 const E=eggs.map((k,i)=>{const e=new Egg(k);const t=i/Math.max(1,eggs.length)*Math.PI*2;e.root.position.set(nest.x+Math.cos(t)*3*(eggs.length>1),0,nest.z+Math.sin(t)*3*(eggs.length>1));e.root.scale.setScalar(0.6);sc.add(e.root);return e});
-J={sc,rd,cm,R,A,E,pond,fruit,sad,obst,parts:[],hc:{},affT:0,th:0.6,ph:0.78,dist:(R+18)*(innerWidth<innerHeight?3.1:2.2),last:performance.now(),press:null,raf:0};
-jAff();jarEl.classList.add('on');document.getElementById('jcount').textContent='Niveau '+(T+1)+' · '+pl.length+' Plopi'+(pl.length>1?'s':'')+(S.order.filter(k=>S.found[k].h).length>pl.length?' (les 40 plus grands)':'');jResize();J.raf=requestAnimationFrame(jLoop);if(S.jNew){const t=S.jNew;S.jNew=0;save();setTimeout(()=>jToast('🌱 Nouveau : '+JNEW[t]+' !'),600)}else if(T<6)setTimeout(()=>J&&jToast('Prochain agrandissement à '+((T+1)*10)+' Plopis 🌱'),600)}
+const signP={x:nest.x+11,z:nest.z-4};G.push([signP.x,2,signP.z,0.8,4,0.8,0x7E5434]);G.push([signP.x,4.6,signP.z,5,2.6,0.6,0xA8743F]);
+const locked=MISSIONS.filter(m=>!S.found[natK(m.n)]);const SH=locked.map((m,i)=>{const k=natK(m.n);const p=new P(k,0,0);p.root.traverse(o=>{if(o.isInstancedMesh){for(let q=0;q<o.count;q++)o.setColorAt(q,col.set(0x262b55));if(o.instanceColor)o.instanceColor.needsUpdate=true}else if(o.isMesh){o.material=new THREE.MeshLambertMaterial({color:0x262b55})}});const t=i/Math.max(1,locked.length)*Math.PI*2+1.3;const x=Math.sin(t)*(R-7),z=Math.cos(t)*(R-7);p.root.position.set(x,0,z);p.root.rotation.y=Math.atan2(-x,-z);p.root.scale.setScalar(0.85);sc.add(p.root);const q=document.createElement('div');q.className='jq';q.textContent='?';document.getElementById('jlab').appendChild(q);return{m,p,x,z,q,ph:Math.random()*6}});
+const was=S.jLocked||[];const nowL=locked.map(m=>m.n);const newly=was.filter(n=>!nowL.includes(n));S.jLocked=nowL;save();
+J={sc,rd,cm,R,A,E,pond,fruit,sad,obst,SH,signP,newly,parts:[],hc:{},affT:0,th:0.6,ph:0.78,dist:(R+18)*(innerWidth<innerHeight?4.4:3.1),last:performance.now(),press:null,raf:0};
+jAff();jarEl.classList.add('on');document.getElementById('jcount').textContent='Niveau '+(T+1)+' · '+pl.length+' Plopi'+(pl.length>1?'s':'')+(S.order.filter(k=>S.found[k].h).length>pl.length?' (les 40 plus grands)':'');document.getElementById('jsign').textContent='📜 Missions '+MISSIONS.filter(m=>S.found[natK(m.n)]).length+'/'+MISSIONS.length;jResize();J.raf=requestAnimationFrame(jLoop);if(J.newly.length)setTimeout(()=>jToast('✨ '+J.newly.join(', ')+' '+(J.newly.length>1?'ont':'a')+' rejoint ton jardin !'),1200);if(S.jNew){const t=S.jNew;S.jNew=0;save();setTimeout(()=>jToast('🌱 Nouveau : '+JNEW[t]+' !'),600)}else if(T<6)setTimeout(()=>J&&jToast('Prochain agrandissement à '+((T+1)*10)+' Plopis 🌱'),600)}
 function jRel(a,b){const fa=a.f,fb=b.f;if(fa.p&&fa.p.includes(b.k))return 1;if(fb.p&&fb.p.includes(a.k))return 1;if(fa.p&&fb.p&&fa.p.some(x=>fb.p.includes(x)))return 1;return 0}
 function jAff(){const A=J.A,n=A.length;J.M=A.map((a,i)=>A.map((b,j)=>{if(i==j)return null;const af=affinity(a.k,b.k);return{af,fam:jRel(a,b),w:(jRel(a,b)?3:0)+(af-50)/15}}));J.affT=performance.now()}
-function closeJardin(){if(!J)return;cancelAnimationFrame(J.raf);J.rd.dispose();J.rd.domElement.remove();J=null;jarEl.classList.remove('on');if(S.sel!=null){showSel();renderGarden()}}
+function closeJardin(){if(!J)return;document.getElementById('jlab').innerHTML='';cancelAnimationFrame(J.raf);J.rd.dispose();J.rd.domElement.remove();J=null;jarEl.classList.remove('on');if(S.sel!=null){showSel();renderGarden()}}
 function jResize(){if(!J)return;const w=jarHost.clientWidth,h=jarHost.clientHeight;J.rd.setSize(w,h);J.cm.aspect=w/h;J.cm.updateProjectionMatrix()}
 addEventListener('resize',jResize);
 function jHeart(a){const g=new THREE.Group();const hm=new THREE.MeshLambertMaterial({color:0xFF7FA0,transparent:true});[[-1,1],[1,1],[-1,0],[0,0],[1,0],[0,-1]].forEach(([u,v])=>{const c=new THREE.Mesh(HG,hm);c.position.set(u*0.5,v*0.5,0);g.add(c)});g.scale.setScalar(1.6);g.position.set(a.x,a.p.top+2,a.z);J.sc.add(g);J.parts.push({o:g,m:hm,v:new THREE.Vector3((Math.random()-.5)*3,7,0),t0:performance.now(),life:1.3,face:true})}
@@ -706,7 +718,9 @@ p.update(now,{yaw:a.hd,hop:isSad(f)?0.3:0.9})}});
 // séparation
 if(now-J.affT>30000)jAff();for(let i=0;i<J.A.length;i++)for(let j=i+1;j<J.A.length;j++){const a=J.A[i],b=J.A[j];const dx=b.x-a.x,dz=b.z-a.z,d=Math.hypot(dx,dz)||0.01,mm=J.M[i][j],m=a.r+b.r+(mm.af<35&&!mm.fam?7:0);if(mm.af>=70&&a.st==2&&b.st==2&&a.md!=3&&b.md!=3&&d<a.r+b.r+5&&!a.tg&&!b.tg&&now-(J.hc[i+'-'+j]||0)>9000){J.hc[i+'-'+j]=now;a.hd=Math.atan2(dx,dz);b.hd=Math.atan2(-dx,-dz);a.wait=b.wait=2;a.p.happyEnd=b.p.happyEnd=now+1500;const mid={x:(a.x+b.x)/2,z:(a.z+b.z)/2,p:{top:Math.max(a.p.top,b.p.top)}};jHeart(mid);setTimeout(()=>J&&jHeart(mid),250)}if(d<m){const push=(m-d)/2;const ux=dx/d,uz=dz/d;if(a.md!=3){a.x-=ux*push;a.z-=uz*push}if(b.md!=3){b.x+=ux*push;b.z+=uz*push}}}
 J.A.forEach(a=>{const d=Math.hypot(a.x,a.z),lim=R-a.r-2;if(d>lim){a.x*=lim/d;a.z*=lim/d}J.obst.forEach(o=>{const dp=Math.hypot(a.x-o.x,a.z-o.z),pl=o.r+a.r-(o===J.obst[0]?4:2);if(dp<pl&&dp>0){a.x=o.x+(a.x-o.x)/dp*pl;a.z=o.z+(a.z-o.z)/dp*pl}});a.p.root.position.x=a.x;a.p.root.position.z=a.z;a.sh.position.set(a.x,-0.45,a.z)});
-J.E.forEach(e=>e.update(now,{}));
+J.E.forEach(e=>e.update(now,{}));const hr=jarHost.getBoundingClientRect();const prj=(x,y,z)=>{const v=new THREE.Vector3(x,y,z).project(J.cm);return[(v.x+1)/2*hr.width,(1-v.y)/2*hr.height,v.z<1]};
+J.SH.forEach(o=>{o.p.root.position.y=Math.abs(Math.sin(now/700+o.ph))*0.6;const [x,y,vis]=prj(o.x,o.p.top*0.85+3,o.z);o.q.style.left=x+'px';o.q.style.top=y+'px';o.q.style.display=vis?'block':'none'});
+{const [x,y,vis]=prj(J.signP.x,7,J.signP.z);const sg=document.getElementById('jsign');sg.style.left=x+'px';sg.style.top=y+'px';sg.style.display=vis?'block':'none'}
 for(let i=J.parts.length-1;i>=0;i--){const q=J.parts[i],t=(now-q.t0)/1000;if(t>q.life){J.sc.remove(q.o);J.parts.splice(i,1);continue}q.o.position.addScaledVector(q.v,dt);if(q.face)q.o.lookAt(J.cm.position);q.m.opacity=Math.max(0,1-Math.max(0,t-q.life*0.6)/(q.life*0.4))}
 const cy=Math.cos(J.ph),sy=Math.sin(J.ph);J.cm.position.set(Math.sin(J.th)*sy*J.dist,cy*J.dist,Math.cos(J.th)*sy*J.dist);J.cm.lookAt(0,4,0);J.rd.render(J.sc,J.cm)}
 // toucher : rotation, zoom, câlin, appui long → fiche
@@ -714,11 +728,11 @@ const jPts=new Map();let jPinch=0;
 function jHit(cx,cy){const r=jarHost.getBoundingClientRect();let best=null,bd=1e9;J.A.forEach(a=>{const v=new THREE.Vector3(a.x,(a.md==3?a.p.s.w:a.p.top*0.45),a.z).project(J.cm);const sx=(v.x+1)/2*r.width+r.left,sy=(1-v.y)/2*r.height+r.top;const d=Math.hypot(sx-cx,sy-cy);const rad=Math.max(28,a.r*r.height/(J.dist*0.9));if(d<rad&&d<bd){bd=d;best=a}});return best}
 jarHost.addEventListener('pointerdown',e=>{if(!J)return;if(!e.isPrimary&&jPts.size==0){}if(e.isPrimary)jPts.clear();jarHost.setPointerCapture(e.pointerId);jPts.set(e.pointerId,{x:e.clientX,y:e.clientY});if(jPts.size==1){J.press={x:e.clientX,y:e.clientY,t:performance.now(),mv:0,a:jHit(e.clientX,e.clientY)};clearTimeout(J.lp);J.lp=setTimeout(()=>{if(J&&J.press&&J.press.mv<10&&J.press.a){const k=J.press.a.k;J.press=null;jPts.clear();jPinch=0;openFiche(k)}},550)}else{J.press=null;clearTimeout(J.lp);const [p1,p2]=[...jPts.values()];jPinch=Math.hypot(p1.x-p2.x,p1.y-p2.y)}});
 jarHost.addEventListener('pointermove',e=>{if(!J||!jPts.has(e.pointerId))return;const o=jPts.get(e.pointerId);const dx=e.clientX-o.x,dy=e.clientY-o.y;jPts.set(e.pointerId,{x:e.clientX,y:e.clientY});
-if(jPts.size==1){J.th-=dx*0.008;J.ph=Math.max(0.35,Math.min(1.25,J.ph-dy*0.006));if(J.press)J.press.mv+=Math.abs(dx)+Math.abs(dy)}else if(jPts.size==2){const [p1,p2]=[...jPts.values()];const d=Math.hypot(p1.x-p2.x,p1.y-p2.y);if(jPinch){J.dist=Math.max(J.R*0.7,Math.min(J.R*4.6,J.dist*jPinch/d))}jPinch=d}});
-function jUp(e){if(!J)return;jPts.delete(e.pointerId);if(jPts.size<2)jPinch=0;clearTimeout(J.lp);const pr=J.press;J.press=null;if(pr&&pr.mv<10&&performance.now()-pr.t<450&&pr.a){const a=pr.a,f=a.f,now=performance.now();if(a.md==3){a.p.hopT=now;jToast('Chut… '+nameOf(a.k)+' dort 😴')}else{a.p.happyEnd=now+1100;a.p.hopT=now;jHeart(a);a.tg=null;a.wait=1.2;const r=jarHost.getBoundingClientRect();const v=J.cm.position;a.hd=Math.atan2(v.x-a.x,v.z-a.z);if(now-(J.lastLove||0)>400){J.lastLove=now;giveLove(a.k,1);if(isSad(f)===false&&f.st<2)jToast(nameOf(a.k)+' ♥ '+f.love+'/'+LV[f.st])}}}}
+if(jPts.size==1){J.th-=dx*0.008;J.ph=Math.max(0.35,Math.min(1.25,J.ph-dy*0.006));if(J.press)J.press.mv+=Math.abs(dx)+Math.abs(dy)}else if(jPts.size==2){const [p1,p2]=[...jPts.values()];const d=Math.hypot(p1.x-p2.x,p1.y-p2.y);if(jPinch){J.dist=Math.max(J.R*1,Math.min(J.R*6.5,J.dist*jPinch/d))}jPinch=d}});
+function jUp(e){if(!J)return;jPts.delete(e.pointerId);if(jPts.size<2)jPinch=0;clearTimeout(J.lp);const pr=J.press;J.press=null;if(pr&&pr.mv<10&&performance.now()-pr.t<450&&!pr.a){const hr=jarHost.getBoundingClientRect();const o=J.SH.find(o=>{const v=new THREE.Vector3(o.x,o.p.top*0.5,o.z).project(J.cm);return Math.hypot((v.x+1)/2*hr.width+hr.left-e.clientX,(1-v.y)/2*hr.height+hr.top-e.clientY)<40});if(o){o.p.root.position.y=1.5;jToast('Plopi mystère… '+o.m.t)}}if(pr&&pr.mv<10&&performance.now()-pr.t<450&&pr.a){const a=pr.a,f=a.f,now=performance.now();if(a.md==3){a.p.hopT=now;jToast('Chut… '+nameOf(a.k)+' dort 😴')}else{a.p.happyEnd=now+1100;a.p.hopT=now;jHeart(a);a.tg=null;a.wait=1.2;const r=jarHost.getBoundingClientRect();const v=J.cm.position;a.hd=Math.atan2(v.x-a.x,v.z-a.z);if(now-(J.lastLove||0)>400){J.lastLove=now;giveLove(a.k,1);if(isSad(f)===false&&f.st<2)jToast(nameOf(a.k)+' ♥ '+f.love+'/'+LV[f.st])}}}}
 jarHost.addEventListener('pointerup',jUp);jarHost.addEventListener('pointercancel',jUp);jarHost.addEventListener('lostpointercapture',e=>{jPts.delete(e.pointerId);if(jPts.size<2)jPinch=0});
-jarHost.addEventListener('wheel',e=>{if(!J)return;e.preventDefault();J.dist=Math.max(J.R*0.7,Math.min(J.R*4.6,J.dist*(1+e.deltaY*0.001)))},{passive:false});
-document.getElementById('jardb').onclick=openJardin;document.getElementById('jx').onclick=closeJardin;
+jarHost.addEventListener('wheel',e=>{if(!J)return;e.preventDefault();J.dist=Math.max(J.R*1,Math.min(J.R*6.5,J.dist*(1+e.deltaY*0.001)))},{passive:false});
+document.getElementById('jx').onclick=closeJardin;
 
 function loop(now){requestAnimationFrame(loop);if(J)return;
 if(mode=='dance'&&dn)danceTick(now);else if(mode=='merge'&&mg)mergeTick(now);else if(cur){cur.update(now,{touching,fx,fy});if(cur.mood==3&&now-lastZz>1100){lastZz=now;zzz(cur)}}
