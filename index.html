@@ -194,7 +194,7 @@ const SECRETS=[
 {a:'Lunio',b:'Doudo',n:'Rêvéa',num:25,g:{h:6,b:2,i:6,e:1,c:7},r:3},
 {a:'Ploufi',b:'Doudo',n:'Pluvie',num:13,g:{h:6,b:1,i:3,e:1,c:3},r:3}];
 const SPECIAL=[...BASES,...NATIVES,...SECRETS];
-const STAGES=['Bébé','Grand','Majestueux'],LV=[10,20],HATCH=5,MOOD=[5*60e3,10*60e3,15*60e3],DECAY=60e3;
+const STAGES=['Bébé','Grand','Majestueux'],LV=[10,20],HATCH=5,MOOD=[24*3600e3,36*3600e3,48*3600e3],DECAY=2*3600e3;
 const code=g=>g.h+NH*(g.b+NBo*(g.i+NI*(g.e+NE*g.c)));
 const decode=k=>{const g={};g.h=k%NH;k=Math.floor(k/NH);g.b=k%NBo;k=Math.floor(k/NBo);g.i=k%NI;k=Math.floor(k/NI);g.e=k%NE;g.c=Math.floor(k/NE);return g};
 const special=k=>SPECIAL.find(s=>code(s.g)===k);
