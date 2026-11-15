@@ -362,7 +362,7 @@ else if(st=='happy'){if(ex<0){set(ex,lo,EYE);set(ex+1,lo+1,EYE)}else{set(ex,lo+1
 if(g.e==2){const inn=ex<0?ex+1:ex;set(o,s.rows+2,EYE);set(inn,s.rows+1,EYE)}}
 if(st=='happy'){set(-1,1,EYE);set(0,0,EYE);set(1,1,EYE)}M.instanceColor.needsUpdate=true}
 assemble(now){this.asm={t0:now,s:this.tg.map(t=>t.clone().add(new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(8+Math.random()*12))),d:this.tg.map(()=>Math.random()*0.35)};this.update(now,{})}
-tap(now){this.happyEnd=now+1100;this.hopT=now;this.taps=this.taps.filter(t=>now-t<2500);this.taps.push(now);if(this.taps.length>=3)this.blushEnd=now+2800;heart(this);if(Math.random()<0.6)heart(this)}
+tap(now){this.happyEnd=now+1100;if(this.si==2){this.bowT=now}else{this.hopT=now;if(this.si==1)this.spinT=now}this.taps=this.taps.filter(t=>now-t<2500);this.taps.push(now);if(this.taps.length>=3)this.blushEnd=now+2800;heart(this);if(Math.random()<0.6)heart(this)}
 update(now,c){const s=this.s;
 if(this.asm){const t=(now-this.asm.t0)/1000;for(let i=0;i<this.tg.length;i++){const p=Math.min(1,Math.max(0,(t-this.asm.d[i])/0.8));dm.position.lerpVectors(this.asm.s[i],this.tg[i],ease(p));dm.scale.setScalar(Math.max(0.01,Math.min(1,p*1.6)));dm.updateMatrix();this.mesh.setMatrixAt(i,dm.matrix)}this.mesh.instanceMatrix.needsUpdate=true;const vis=t>0.9;this.arms.forEach(a=>a.visible=vis);if(this.prop)this.prop.visible=vis;if(this.aura)this.aura.visible=vis;if(t>1.3){this.asm=null;this.hopT=now}}
 let st='open';if(now<this.happyEnd)st='happy';else if(this.mood==3)st='closed';else if(this.mood>=1)st='sad';else{if(now>this.nextBlink&&!this.blinkEnd)this.blinkEnd=now+130;if(this.blinkEnd){st='closed';if(now>this.blinkEnd){this.blinkEnd=0;this.nextBlink=now+1800+Math.random()*2600}}}
@@ -371,7 +371,7 @@ if(this.D.emb.length&&now-this.lastE>220){this.lastE=now;this.D.emb.forEach(i=>t
 const ht=(now-this.hopT)/1000;let h=0;if(ht<0.45)h=Math.sin(Math.PI*ht/0.45)*(c.hop!=null?c.hop:(this.mood&&now>this.happyEnd?0.4:1.8));if(ht>=0.45&&ht<0.5&&this.sqT<this.hopT){this.sqT=now;this.sqA=0.6}
 const s2=(now-this.sqT)/1000;const sq=s2<1.2?this.sqA*Math.exp(-4.5*s2)*Math.cos(15*s2):0;const br=this.mood==3?Math.sin(now/1000)*0.04-0.06:Math.sin(now/450)*0.02;
 let ty,tp;if(c.touching){ty=Math.atan2(c.fx-this.root.position.x,16);tp=-Math.atan2(c.fy-this.top*0.5,24)*0.5}else{ty=c.yaw!=null?c.yaw:Math.sin(now/2200)*0.4;tp=0}
-this.yaw+=(ty-this.yaw)*0.12;this.pitch+=(tp-this.pitch)*0.12;this.root.rotation.y=this.yaw;this.root.rotation.x=this.pitch;
+this.yaw+=(ty-this.yaw)*0.12;this.pitch+=(tp-this.pitch)*0.12;this.root.rotation.y=this.yaw;this.root.rotation.x=this.pitch;if(this.spinT){const t=(now-this.spinT)/650;if(t<1)this.root.rotation.y+=Math.PI*2*(1-Math.pow(1-t,3));else this.spinT=0}if(this.bowT){const t=(now-this.bowT)/1000;if(t<1)this.root.rotation.x+=Math.sin(Math.PI*Math.min(1,t*1.15))*0.42;else this.bowT=0}
 this.inner.scale.set(1+0.16*sq-br*0.5,1-0.22*sq+br,1+0.16*sq-br*0.5);this.root.position.y=(c.baseY||0)+h;
 const wave=now<this.happyEnd?Math.sin(now/70)*0.6:Math.sin(now/600)*0.1;this.arms[0].position.y=s.arm+wave;this.arms[1].position.y=s.arm-wave;
 if(this.bub){const t=(now-this.hopT)/1000;const w=t<0.9?Math.exp(-5*t)*Math.sin(t*28)*0.07:0;const b=1+Math.sin(now/900)*0.015;this.bub.scale.set(b+w,b-w,b+w);this.bub.rotation.y=-this.yaw}if(this.prop)this.prop.rotation.y=now/110;if(this.aura){this.aura.rotation.y=now/1800;this.aura.children.forEach((q,i)=>q.position.y=2+((i*37)%10)+Math.sin(now/500+i)*0.5)}}}
