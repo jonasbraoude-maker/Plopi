@@ -2,7 +2,7 @@
 const { pipe, day } = require('./_redis');
 
 const EVENTS = new Set(['open', 'ping', 'eclos', 'grand', 'maj', 'danse', 'danse_ok', 'danse_ko', 'fusion', 'mystere',
-  'mission', 'sauvage', 'partage', 'plopidex', 'fiche', 'style', 'oeuf_retour', 'reveil', 'melodie']);
+  'mission', 'sauvage', 'partage', 'plopidex', 'fiche', 'style', 'oeuf_retour', 'reveil', 'melodie', 'dodo']);
 const STEPS = ['open', 'eclos', 'grand', 'maj', 'danse', 'fusion', 'mystere'];
 
 module.exports = async (req, res) => {
