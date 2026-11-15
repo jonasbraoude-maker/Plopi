@@ -152,7 +152,7 @@ body.fs #fsx{display:block}
 </head>
 <body>
 <div id="app">
-<header><div style="display:flex;align-items:center;gap:8px"><div class="logo">Plopi</div><button class="x" id="privb" aria-label="Confidentialité" style="width:26px;height:26px;font-size:13px">i</button></div><div class="seg" id="seg"><button data-s="nb">N&amp;B</button><button data-s="acc">Accents</button><button data-s="col" class="on">Couleur</button></div></header>
+<header><div style="display:flex;align-items:center;gap:8px"><div class="logo">Plopi</div><span id="tstb" style="display:none;background:#FFD95A;color:#5a3a00;border-radius:999px;font-size:11px;font-weight:700;padding:1px 8px">MODE TEST</span><button class="x" id="privb" aria-label="Confidentialité" style="width:26px;height:26px;font-size:13px">i</button></div><div class="seg" id="seg"><button data-s="nb">N&amp;B</button><button data-s="acc">Accents</button><button data-s="col" class="on">Couleur</button></div></header>
 <div id="stage"><div id="flash"></div><div id="bubble"></div><button id="fsx" aria-label="Quitter">✕</button><button class="bt" id="wild" aria-label="Œuf sauvage"></button><div id="wildl">Œuf sauvage !</div><div id="dance"><div class="dt">Danse de l'amour<small id="daff"></small></div><div id="dbar"><div id="dzone"></div><div id="dheart">♥</div></div><div id="dprog"><i></i></div><div id="dhand"></div><div id="dmsg"></div></div><div id="banner"></div><div id="toast"></div></div>
 <div id="info"></div>
 <div id="bar"><button class="barb" id="opendex">Plopidex <span id="dex"></span> ⤢</button><button class="barb" id="misb">Missions</button><span id="sec"></span></div>
@@ -194,7 +194,8 @@ const SECRETS=[
 {a:'Lunio',b:'Doudo',n:'Rêvéa',num:25,g:{h:6,b:2,i:6,e:1,c:7},r:3},
 {a:'Ploufi',b:'Doudo',n:'Pluvie',num:13,g:{h:6,b:1,i:3,e:1,c:3},r:3}];
 const SPECIAL=[...BASES,...NATIVES,...SECRETS];
-const STAGES=['Bébé','Grand','Majestueux'],LV=[10,20],HATCH=5,MOOD=[24*3600e3,36*3600e3,48*3600e3],DECAY=2*3600e3;
+const TST=(()=>{try{const q=new URLSearchParams(location.search);if(q.has('test'))localStorage.setItem('plopi_test',q.get('test')==='0'?'':'1');return localStorage.getItem('plopi_test')==='1'}catch(e){return location.search.includes('test')}})();
+const STAGES=['Bébé','Grand','Majestueux'],LV=[10,20],HATCH=5,MOOD=TST?[5*60e3,10*60e3,15*60e3]:[24*3600e3,36*3600e3,48*3600e3],DECAY=TST?60e3:2*3600e3;
 const code=g=>g.h+NH*(g.b+NBo*(g.i+NI*(g.e+NE*g.c)));
 const decode=k=>{const g={};g.h=k%NH;k=Math.floor(k/NH);g.b=k%NBo;k=Math.floor(k/NBo);g.i=k%NI;k=Math.floor(k/NI);g.e=k%NE;g.c=Math.floor(k/NE);return g};
 const special=k=>SPECIAL.find(s=>code(s.g)===k);
@@ -386,11 +387,11 @@ let toastT=0;function toast(t){toastEl.innerHTML=t;toastEl.style.opacity=1;clear
 const FEEDCD=15000;
 function info(k){const f=S.found[k];const r=rarityOf(k);
 if(f.egg){let h='<div class="nm">'+dname(k)+'</div><div class="sub">'+dnum(k)+(f.h?' · '+STAGES[f.st]+' endormi dans son œuf':' · Fais-le éclore pour découvrir qui il est !')+(f.p?' · '+dname(f.p[0])+' + '+dname(f.p[1]):'')+'</div>';
-const left=Math.max(0,Math.ceil((FEEDCD-(Date.now()-f.fed))/1000));h+='<div class="care"><span class="lv">Câlins '+f.hatch+'/'+needH(f)+'</span><div class="gauge"><i style="width:'+(100*f.hatch/needH(f))+'%"></i></div><button class="feed" id="feed" '+(left>0?'disabled':'')+'>'+(left>0?'Chaleur '+left+' s':'Réchauffer +3')+'</button><button class="tst" id="tst">+10 test</button></div>';
-h+='<div style="margin-top:3px"><button class="barb" id="fopen">Voir la fiche ›</button></div>';infoEl.innerHTML=h;document.getElementById('fopen').onclick=()=>openFiche(k);document.getElementById('feed').onclick=()=>{if(Date.now()-f.fed<FEEDCD)return;f.fed=Date.now();if(cur)cur.tap(performance.now());giveLove(k,3)};document.getElementById('tst').onclick=()=>giveLove(k,10);return}
+const left=Math.max(0,Math.ceil((FEEDCD-(Date.now()-f.fed))/1000));h+='<div class="care"><span class="lv">Câlins '+f.hatch+'/'+needH(f)+'</span><div class="gauge"><i style="width:'+(100*f.hatch/needH(f))+'%"></i></div><button class="feed" id="feed" '+(left>0?'disabled':'')+'>'+(left>0?'Chaleur '+left+' s':'Réchauffer +3')+'</button>'+(TST?'<button class="tst" id="tst">+10 test</button>':'')+'</div>';
+h+='<div style="margin-top:3px"><button class="barb" id="fopen">Voir la fiche ›</button></div>';infoEl.innerHTML=h;document.getElementById('fopen').onclick=()=>openFiche(k);document.getElementById('feed').onclick=()=>{if(Date.now()-f.fed<FEEDCD)return;f.fed=Date.now();if(cur)cur.tap(performance.now());giveLove(k,3)};const tb0=document.getElementById('tst');if(tb0)tb0.onclick=()=>giveLove(k,10);return}
 const md=moodOf(f);
 let h='<div class="nm">'+nameOf(k)+' <span style="font-size:14px;opacity:.75;font-weight:500">'+STAGES[f.st]+'</span></div>'+(md==1?'<div class="sub" style="color:#ff8fb0;opacity:1">Il est triste… fais-lui un câlin !</div>':md==2?'<div class="sub" style="color:#ff6b8b;opacity:1;font-weight:700">Il est épuisé ! Il va bientôt retourner dans son œuf</div>':'')+'<div class="sub">'+numOf(k)+' · '+STARS(r)+' '+RNAME[r]+' · '+f.rank+(f.rank==1?'re':'e')+' découverte'+(f.p?' · '+nameOf(f.p[0])+' + '+nameOf(f.p[1]):'')+'</div>';
-if(f.st<2){const need=LV[f.st];const left=Math.max(0,Math.ceil((FEEDCD-(Date.now()-f.fed))/1000));h+='<div class="care"><span class="lv">♥ '+f.love+'/'+need+'</span><div class="gauge"><i style="width:'+(100*f.love/need)+'%"></i></div><button class="feed" id="feed" '+(left>0?'disabled':'')+'>'+(left>0?'Repas '+left+' s':'Nourrir +3')+'</button><button class="tst" id="tst">+10 test</button></div>'}
+if(f.st<2){const need=LV[f.st];const left=Math.max(0,Math.ceil((FEEDCD-(Date.now()-f.fed))/1000));h+='<div class="care"><span class="lv">♥ '+f.love+'/'+need+'</span><div class="gauge"><i style="width:'+(100*f.love/need)+'%"></i></div><button class="feed" id="feed" '+(left>0?'disabled':'')+'>'+(left>0?'Repas '+left+' s':'Nourrir +3')+'</button>'+(TST?'<button class="tst" id="tst">+10 test</button>':'')+'</div>'}
 else{const bz=busyWith(k);h+=bz?'<div class="care"><span class="fusok" style="color:#8fd3ff">✦ Majestueux · couve son œuf</span></div>':'<div class="care"><span class="fusok">✦ Majestueux · peut fusionner</span></div>'}
 h+='<div style="margin-top:3px"><button class="barb" id="fopen">Voir la fiche ›</button></div>';infoEl.innerHTML=h;document.getElementById('fopen').onclick=()=>openFiche(k);const fb=document.getElementById('feed');if(fb)fb.onclick=()=>{if(Date.now()-f.fed<FEEDCD)return;f.fed=Date.now();if(cur)cur.tap(performance.now());giveLove(k,3)};const tb=document.getElementById('tst');if(tb)tb.onclick=()=>giveLove(k,10)}
 const prevMood={};
@@ -432,7 +433,7 @@ const natK=n=>code(NATIVES.find(x=>x.n===n).g);
 function unlockNative(n,why,delay){const k=natK(n);if(S.found[k])return false;track('mission');addFound(k);const f=S.found[k];f.need=3;f.nat=true;save();
 setTimeout(()=>{toast((why||'Mission accomplie !')+'<br>Un <b>œuf de nouveau natif</b> est arrivé dans ta collection');renderGarden()},delay||0);return true}
 function checkMissions(){let d=0;MISSIONS.forEach(m=>{if(m.ok&&m.ok()&&unlockNative(m.n,'Mission accomplie : '+m.t,d))d+=2600});renderGarden()}
-const WILD=5*60e3;const wildEl=document.getElementById('wild'),wildL=document.getElementById('wildl');
+const WILD=TST?5*60e3:24*3600e3;const wildEl=document.getElementById('wild'),wildL=document.getElementById('wildl');
 function wildTick(){const on=mode=='view'&&Date.now()-S.wildLast>=WILD;wildEl.style.display=on?'block':'none';wildL.style.display=on?'block':'none'}
 wildEl.addEventListener('pointerdown',e=>e.stopPropagation());
 wildEl.onclick=e=>{e.stopPropagation();if(Date.now()-S.wildLast<WILD)return;track('sauvage');S.wildLast=Date.now();const hr=new Date().getHours(),night=hr>=20||hr<6;
@@ -588,6 +589,7 @@ if(mode=='dance'&&dn)danceTick(now);else if(mode=='merge'&&mg)mergeTick(now);els
 for(let i=parts.length-1;i>=0;i--){const p=parts[i],t=(now-p.t0)/1000;if(t>p.life){scene.remove(p.o);parts.splice(i,1);continue}const dt=1/60;p.v.y-=p.grav*dt;p.o.position.addScaledVector(p.v,dt);p.o.rotation.y+=p.spin*dt;p.o.rotation.x+=p.spin*0.5*dt;p.m.opacity=Math.max(0,1-Math.max(0,t-p.life*0.6)/(p.life*0.4))}
 camY+=(tY-camY)*0.08;camD+=(tD-camD)*0.08;cam.position.set(0,camY+camD*0.16,camD);cam.lookAt(0,camY,0);
 tutoTick(now);renderer.render(scene,cam)}
+if(TST)document.getElementById('tstb').style.display='inline-block';
 resize();renderGarden();showSel();setTimeout(checkMissions,1500);track('open');if(!S.privSeen&&!TESTM){S.privSeen=1;save();setTimeout(()=>toast('Plopi mesure anonymement comment on joue,<br>sans nom ni email. Détails : bouton <b>i</b> en haut.'),5000)}camY=tY;camD=tD;updateTuto();requestAnimationFrame(loop);
 </script>
 </body>
