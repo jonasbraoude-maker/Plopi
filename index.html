@@ -347,22 +347,23 @@ function clearStage(){if(dn){scene.remove(dn.A.root);scene.remove(dn.B.root);dn=
 function showSel(){clearStage();mode='view';cur=makeP(S.sel);scene.add(cur.root);frame(cur.top,cur.s.w+3);info(S.sel);banEl.classList.remove('on')}
 function select(k){S.sel=k;save();showSel();cur.hopT=performance.now();gardenEl.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',+c.dataset.k===k))}
 function breed(a,b){const ga=decode(a),gb=decode(b);const na=special(a),nb=special(b);
-if(na&&nb){const sc=SECRETS.find(s=>(s.a==na.n&&s.b==nb.n)||(s.a==nb.n&&s.b==na.n));if(sc&&Math.random()<0.5)return{k:code(sc.g),secret:sc}}
+if(na&&nb){const sc=SECRETS.find(s=>(s.a==na.n&&s.b==nb.n)||(s.a==nb.n&&s.b==na.n));const first=!((S.pairs||{})[[a,b].sort().join('-')]);if(sc&&(first||Math.random()<0.5))return{k:code(sc.g),secret:sc}}
 const one=()=>{let g;for(let t=0;t<10;t++){g={};for(const s of['h','b','i','e','c'])g[s]=Math.random()<0.5?ga[s]:gb[s];const k=code(g);if(k!==a&&k!==b&&!special(k))break}
 if(Math.random()<0.15||code(g)===a||code(g)===b){const slots=['h','b','i','e','c'];const s=slots[Math.floor(Math.random()*5)];g[s]=MUT[s][Math.floor(Math.random()*MUT[s].length)]}
 if(Math.random()<0.02)g.c=11;let k=code(g);if(special(k)){g.c=6+Math.floor(Math.random()*5);k=code(g)}return k};
 let k=one();for(let t=0;t<30&&S.found[k];t++)k=one();return{k}}
 const FIRE=g=>g.h==3||g.b==3,WATER=g=>g.b==1;
 function incompat(a,b){const ga=decode(a),gb=decode(b);if((FIRE(ga)&&WATER(gb))||(WATER(ga)&&FIRE(gb)))return{t:'eau',msg:'Pschhh ! Le feu et l\'eau ne s\'entendent pas.',sub:'Le feu s\'est éteint… essaie un autre partenaire.'};if(ga.h==4&&gb.h==4)return{t:'roi',msg:'Il ne peut y avoir qu\'un seul roi !',sub:'Deux couronnés refusent de fusionner.'};return null}
-function affinity(a,b){const na=special(a),nb=special(b);if(na&&nb&&SECRETS.some(s=>(s.a==na.n&&s.b==nb.n)||(s.a==nb.n&&s.b==na.n)))return 95;
+const pairN=(a,b)=>(S.pairs||{})[[a,b].sort().join('-')]||0;
+function affinity(a,b){const na=special(a),nb=special(b);const used=pairN(a,b)*15;if(na&&nb&&SECRETS.some(s=>(s.a==na.n&&s.b==nb.n)||(s.a==nb.n&&s.b==na.n)))return Math.max(10,95-used);
 const ga=decode(a),gb=decode(b);let v=60;for(const s of['h','b','i','e','c'])if(ga[s]===gb[s])v+=10;if((FIRE(ga)&&WATER(gb))||(WATER(ga)&&FIRE(gb)))v-=45;if(ga.h==4&&gb.h==4)v-=30;
-const ma=moodOf(S.found[a]),mb=moodOf(S.found[b]);if(ma==0&&mb==0)v+=10;if(ma>=1||mb>=1)v-=20;return Math.max(10,Math.min(95,v))}
+const ma=moodOf(S.found[a]),mb=moodOf(S.found[b]);if(ma==0&&mb==0)v+=10;if(ma>=1||mb>=1)v-=20;v-=used;return Math.max(10,Math.min(95,v))}
 const SULK=60000;
 const danceEl=document.getElementById('dance'),dzone=document.getElementById('dzone'),dheart=document.getElementById('dheart'),dprogI=document.querySelector('#dprog i'),dmsg=document.getElementById('dmsg');let dn=null,holding=false;
 function merge(a,b){if(mode=='merge'||mode=='dance')return;const key=[a,b].sort().join('-');S.sulk=S.sulk||{};const sl=S.sulk[key];if(sl&&Date.now()-sl<SULK){toast('Ils boudent encore…<br>Réessaie dans '+Math.ceil((SULK-(Date.now()-sl))/1000)+' s');return}
 clearStage();mode='dance';banEl.classList.remove('on');const now=performance.now();const A=new P(a,2),B=new P(b,2);A.root.scale.setScalar(0.5);B.root.scale.setScalar(0.5);A.root.position.x=-7;B.root.position.x=7;scene.add(A.root);scene.add(B.root);tY=4;tD=Math.max(8/T,12/(T*cam.aspect));
 const af=affinity(a,b),q=(af-10)/85;dn={a,b,A,B,af,t0:now+1600,zone:0.13+0.23*q,zy:0.5,zv:0,hy:0.5,ht:0.5,nextT:0,nerv:0.42+0.88*q,spd:1.6-1.0*q,prog:0.3,inside:false,done:null,x:7};
-document.getElementById('daff').textContent=nameOf(a)+' + '+nameOf(b)+' · affinité '+af+' %';danceEl.classList.add('on');dmsg.textContent='Maintiens le doigt pour monter la zone rose';
+const pn=pairN(a,b);document.getElementById('daff').textContent=nameOf(a)+' + '+nameOf(b)+' · affinité '+af+' %'+(pn?' · déjà '+pn+(pn>1?' enfants':' enfant')+' ensemble, la flamme s\'use':'');danceEl.classList.add('on');dmsg.textContent='Maintiens le doigt pour monter la zone rose';
 infoEl.innerHTML='<div class="nm">'+nameOf(a)+' + '+nameOf(b)+'</div><div class="sub">Garde son cœur dans la zone rose pour qu\'ils dansent</div>'}
 function danceTick(now){const D=dn,dt=1/60,{A,B}=D;
 if(now>=D.t0&&!D.done){D.zv+=(holding?1.9:-1.6)*dt;D.zv*=0.94;D.zy+=D.zv*dt;if(D.zy<D.zone/2){D.zy=D.zone/2;D.zv=Math.abs(D.zv)*0.3}if(D.zy>1-D.zone/2){D.zy=1-D.zone/2;D.zv=-Math.abs(D.zv)*0.3}
@@ -392,7 +393,7 @@ const cs=[COLORS[decode(mg.a).c],COLORS[decode(mg.b).c],0xFFFFFF,0xFF7FA0];for(l
 if(t>1.05&&!mg.C){const ex=S.found[mg.res.k];const C=ex&&!ex.egg?new P(mg.res.k,ex.st,0):new Egg(mg.res.k);scene.add(C.root);C.assemble(now);mg.C=C;cur=C;frame(C.top,C.s.w+3)}
 if(mg.C)mg.C.update(now,{touching,fx,fy});
 if(t>2.4&&!mg.done){mg.done=true;finishMerge()}}
-function finishMerge(){const k=mg.res.k;const isNew=addFound(k,[mg.a,mg.b]);[mg.a,mg.b].forEach(x=>{S.found[x].last=Date.now();S.found[x].lost=0});if(isNew&&mg.res.secret)S.found[k].sec=true;if(!isNew){S.found[k].love=Math.min((S.found[k].st<2?LV[S.found[k].st]-1:0),S.found[k].love+5)}if(mg.res.secret)S.secrets[mg.res.secret.n]=1;S.sel=k;if(S.tuto<2)S.tuto=2;save();hideTuto();
+function finishMerge(){const k=mg.res.k;S.pairs=S.pairs||{};const pk=[mg.a,mg.b].sort().join('-');S.pairs[pk]=(S.pairs[pk]||0)+1;const isNew=addFound(k,[mg.a,mg.b]);[mg.a,mg.b].forEach(x=>{S.found[x].last=Date.now();S.found[x].lost=0});if(isNew&&mg.res.secret)S.found[k].sec=true;if(!isNew){S.found[k].love=Math.min((S.found[k].st<2?LV[S.found[k].st]-1:0),S.found[k].love+5)}if(mg.res.secret)S.secrets[mg.res.secret.n]=1;S.sel=k;if(S.tuto<2)S.tuto=2;save();hideTuto();
 banEl.innerHTML='<div class="bn"><div class="nm">'+(isNew?'Un œuf mystère !':nameOf(k))+'</div><div class="nb" style="font-size:13px;opacity:.8">'+(isNew?'Touche-le '+HATCH+' fois pour le faire éclore.<br>En attendant, '+nameOf(mg.a)+' et '+nameOf(mg.b)+' le couvent et ne peuvent pas fusionner.':'Déjà dans ton Plopidex : +5 ♥ pour lui')+'</div><div class="row"><button class="bt bt1" id="ok">D\'accord</button></div></div>';banEl.classList.add('on');
 document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');showSel()};
 renderGarden();infoEl.innerHTML='<div class="nm">'+dname(k)+'</div>'}
@@ -462,8 +463,10 @@ const my=mystery(k);let h='<div class="fhero"><img src="'+thumbFor(k)+'"><div cl
 h+=f.egg?'<div class="care" style="margin-top:6px"><span class="lv">Câlins '+f.hatch+'/'+HATCH+'</span><div class="gauge"><i style="width:'+(100*f.hatch/HATCH)+'%"></i></div></div>':f.st<2?'<div class="care" style="margin-top:6px"><span class="lv">♥ '+f.love+'/'+LV[f.st]+'</span><div class="gauge"><i style="width:'+(100*f.love/LV[f.st])+'%"></i></div></div>':'<div class="fusok" style="margin-top:4px">✦ Majestueux · peut fusionner</div>';
 h+='</div><div class="sec"><h3>Ses pièces</h3>'+(my?'<div class="sub" style="opacity:.6;font-size:13px">Surprise ! Fais éclore l\'œuf pour les découvrir.</div></div>':'<div class="genes"><span>Tête</span><span>'+HN[g.h]+mut(MUT.h,g.h)+'</span><span>Corps</span><span>'+BN[g.b]+mut(MUT.b,g.b)+'</span><span>Front</span><span>'+INm[g.i]+mut(MUT.i,g.i)+'</span><span>Yeux</span><span>'+ENm[g.e]+mut(MUT.e,g.e)+'</span><span>Couleur</span><span><i class="sw" style="background:'+hex(COLORS[g.c])+'"></i>'+CNm[g.c]+(g.c==11?'<span class="mut" style="color:#FFD95A">✦ légendaire</span>':mut(MUT.c,g.c))+'</span></div></div>');
 h+='<div class="sec"><h3>Arbre généalogique</h3><div class="tree">'+treeHTML(k,0)+'</div></div>';
+if(f.p){const sib=S.order.filter(x=>x!==k&&S.found[x].p&&[...S.found[x].p].sort().join('-')===[...f.p].sort().join('-'));h+='<div class="sec"><h3>Frères et sœurs ('+sib.length+')</h3>'+(sib.length?'<div class="kidsrow">'+sib.map(x=>tnode(x,56)).join('')+'</div>':'<div class="sub" style="opacity:.55;font-size:13px">Enfant unique pour l\'instant</div>')+'</div>'}
 const kids=S.order.filter(x=>S.found[x].p&&S.found[x].p.includes(k));
-h+='<div class="sec"><h3>Ses enfants ('+kids.length+')</h3>'+(kids.length?'<div class="kidsrow">'+kids.map(x=>tnode(x,56)).join('')+'</div>':'<div class="sub" style="opacity:.55;font-size:13px">Pas encore d\'enfant. Quand il sera Majestueux, fais-le fusionner !</div>')+'</div>';
+const partners={};kids.forEach(x=>{const o=S.found[x].p[0]===k?S.found[x].p[1]:S.found[x].p[0];partners[o]=(partners[o]||0)+1});const pl=Object.keys(partners).map(o=>nameOf(+o)+' ('+partners[o]+')').join(', ');
+h+='<div class="sec"><h3>Ses enfants ('+kids.length+')</h3>'+(pl?'<div class="sub" style="opacity:.6;font-size:12px;margin:-2px 0 6px">Avec : '+pl+'</div>':'')+(kids.length?'<div class="kidsrow">'+kids.map(x=>tnode(x,56)).join('')+'</div>':'<div class="sub" style="opacity:.55;font-size:13px">Pas encore d\'enfant. Quand il sera Majestueux, fais-le fusionner !</div>')+'</div>';
 h+='<div class="fbtns"><button class="fb1" id="fshow">Afficher</button><button class="fb2" id="ffuse" '+(f.st<2||f.egg||busyWith(k)?'disabled':'')+'>Fusionner avec…</button></div>';
 fbody.innerHTML=h;fbody.scrollTop=0;ficheEl.classList.add('on');
 document.getElementById('fshow').onclick=()=>{closeFiche();closeDex();select(k)};
