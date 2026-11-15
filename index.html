@@ -50,8 +50,9 @@ header{display:flex;justify-content:space-between;align-items:center;padding:8px
 .card .mini i{display:block;height:100%;background:#ff6b8b}
 .card.sel{background:rgba(255,255,255,.18)}
 .card.lift{opacity:.35}
+.card,.card img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none}.card img{pointer-events:none}
 .card.tgt{background:rgba(255,107,139,.45);transform:scale(1.08)}
-#ghost{position:fixed;width:84px;height:84px;pointer-events:none;z-index:20;display:none;transform:translate(-50%,-60%) scale(1.15);filter:drop-shadow(0 6px 8px rgba(0,0,0,.45))}
+#ghost{position:fixed;width:84px;height:84px;pointer-events:none;z-index:45;display:none;transform:translate(-50%,-60%) scale(1.15);filter:drop-shadow(0 6px 8px rgba(0,0,0,.45))}
 #tuto{position:fixed;z-index:15;pointer-events:none;display:none;font-size:13px;text-align:center;left:0;right:0}
 #tuto .bub{background:#fff;color:#1b2050;border-radius:14px;padding:6px 12px;font-weight:700;display:inline-block;box-shadow:0 4px 10px rgba(0,0,0,.3)}
 #hand{position:fixed;z-index:16;pointer-events:none;display:none;width:34px;height:34px}
@@ -583,13 +584,13 @@ stageEl.addEventListener('pointerleave',()=>{touching=false});
 // ================= glisser-déposer =================
 const ghost=document.getElementById('ghost');let press=null,drag=null,tgt=null;
 function pt(e){return e.touches&&e.touches[0]?e.touches[0]:(e.changedTouches&&e.changedTouches[0]?e.changedTouches[0]:e)}
-function startPress(e){const card=e.target.closest('.card');if(!card||mode=='merge'||mode=='dance')return;const p=pt(e);press={card,x:p.clientX,y:p.clientY};press.timer=setTimeout(()=>beginDrag(p.clientX,p.clientY),230)}
+function startPress(e){const card=e.target.closest('.card');if(!card||mode=='merge'||mode=='dance')return;if(card.closest('#dgrid')&&dSel)return;const p=pt(e);press={card,x:p.clientX,y:p.clientY};press.timer=setTimeout(()=>beginDrag(p.clientX,p.clientY),230)}
 function beginDrag(x,y){if(!press)return;drag={card:press.card,k:+press.card.dataset.k};press.card.classList.add('lift');ghost.src=press.card.querySelector('img').src;ghost.style.display='block';moveGhost(x,y);try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}}
 function moveGhost(x,y){ghost.style.left=x+'px';ghost.style.top=y+'px';const el=document.elementFromPoint(x,y);let t=el&&el.closest('.card');if(t===drag.card)t=null;const onStage=el&&el.closest('#stage');if(tgt&&tgt!==t)tgt.classList.remove('tgt');tgt=t;if(t)t.classList.add('tgt');drag.stage=!t&&!!onStage}
 function onMove(e){if(drag){if(e.cancelable)e.preventDefault();const p=pt(e);moveGhost(p.clientX,p.clientY);return}if(press){const p=pt(e);if(Math.abs(p.clientX-press.x)+Math.abs(p.clientY-press.y)>10){clearTimeout(press.timer);press=null}}}
 function tryMerge(a,b){const fa=S.found[a],fb=S.found[b];for(const x of[a,b]){const fx=S.found[x];if(fx.egg){toast(fx.h?nameOf(x)+' dort, il est fatigué.<br>Réveil dans '+fmtD((fx.slU||Date.now())-Date.now()):'Un œuf ne peut pas fusionner.<br>Fais-le éclore d\'abord !');return}}for(const x of[a,b]){const bz=busyWith(x);if(bz){toast(nameOf(x)+' couve son œuf.<br>Fais d\'abord éclore l\'œuf mystère !');return}}if(fa.st<2){toast('Seul un Plopi <b>Majestueux</b> peut fusionner.<br>Prends soin de '+nameOf(a)+' pour qu\'il grandisse !');return}if(fb.st<2){toast(nameOf(b)+' doit être <b>Majestueux</b> aussi');return}merge(a,b)}
-function onEnd(e){if(drag){const a=drag.k;let b=null;if(tgt){b=+tgt.dataset.k;tgt.classList.remove('tgt')}else if(drag.stage&&S.sel!==a)b=S.sel;drag.card.classList.remove('lift');ghost.style.display='none';drag=null;tgt=null;if(b!=null&&b!==a)tryMerge(a,b);else toast('Lâche-le sur un autre Plopi');return}
-if(press){clearTimeout(press.timer);const k=+press.card.dataset.k;press=null;if(mode!='merge'&&mode!='dance')select(k)}}
+function onEnd(e){if(drag){const a=drag.k;let b=null;if(tgt){b=+tgt.dataset.k;tgt.classList.remove('tgt')}else if(drag.stage&&S.sel!==a)b=S.sel;const inDex=!!drag.card.closest('#dgrid');drag.card.classList.remove('lift');ghost.style.display='none';drag=null;tgt=null;window._noClick=Date.now();if(b!=null&&b!==a){if(inDex)closeDex();tryMerge(a,b)}else if(!inDex)toast('Lâche-le sur un autre Plopi');return}
+if(press){clearTimeout(press.timer);const k=+press.card.dataset.k;const inDex=!!press.card.closest('#dgrid');press=null;if(!inDex&&mode!='merge'&&mode!='dance')select(k)}}
 gardenEl.addEventListener('touchstart',startPress,{passive:true});gardenEl.addEventListener('mousedown',startPress);
 document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('mousemove',onMove);
 document.addEventListener('touchend',onEnd);document.addEventListener('mouseup',onEnd);document.addEventListener('touchcancel',()=>{if(press){clearTimeout(press.timer);press=null}});
@@ -615,7 +616,8 @@ document.getElementById('dcount').textContent=S.order.length+' découverts · '+
 dselb.textContent=dSel?'Annuler la sélection':'Choisir 2 à fusionner';dact.classList.toggle('on',dSel);
 dslots.innerHTML=[0,1].map(i=>dPick[i]!=null?'<img src="'+thumbFor(dPick[i])+'">':'<div class="ph"></div>').join('<span>+</span>')+(dPick.length==2?'<span style="margin-left:4px">'+nameOf(dPick[0])+' + '+nameOf(dPick[1])+'<br><b style="color:#ff8fb0">♥ affinité '+affinity(dPick[0],dPick[1])+' %</b></span>':'<span style="opacity:.6;margin-left:4px">Touche 2 Majestueux</span>');
 fuseb.disabled=dPick.length!=2}
-dgrid.addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;const k=+c.dataset.k;
+dgrid.addEventListener('touchstart',startPress,{passive:true});dgrid.addEventListener('mousedown',startPress);dgrid.addEventListener('contextmenu',e=>e.preventDefault());
+dgrid.addEventListener('click',e=>{if(Date.now()-(window._noClick||0)<400)return;const c=e.target.closest('.card');if(!c)return;const k=+c.dataset.k;
 if(!dSel){openFiche(k);return}
 if(S.found[k].st<2||S.found[k].egg){toast('Seul un Plopi <b>Majestueux</b> (et réveillé) peut fusionner');return}if(busyWith(k)){toast(nameOf(k)+' couve son œuf');return}
 const i=dPick.indexOf(k);if(i>=0)dPick.splice(i,1);else{if(dPick.length==2)dPick.shift();dPick.push(k)}renderDex()});
