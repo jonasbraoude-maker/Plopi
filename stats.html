@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Plopi — statistiques</title>
+<style>
+:root{--bg:#12163a;--card:#1d2356;--line:rgba(255,255,255,.1);--txt:#fff;--mut:rgba(255,255,255,.62);--pink:#ff6b8b;--ok:#7ee0b0;--warn:#ffd95a;--bad:#ff8a8a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:18px 14px 40px}
+h1{font-size:24px;margin:0}
+h2{font-size:17px;margin:0 0 10px}
+.sub{color:var(--mut);font-size:13px}
+.card{background:var(--card);border-radius:14px;padding:14px 16px;margin-top:16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+.tile{background:var(--card);border-radius:14px;padding:12px 14px}
+.tile .v{font-size:26px;font-weight:700}
+.tile .l{color:var(--mut);font-size:13px}
+.verdict{font-size:16px;font-weight:700}
+.bar{display:grid;grid-template-columns:150px 1fr 88px;gap:10px;align-items:center;margin:6px 0;font-size:14px}
+.bar .t{height:14px;background:rgba(255,255,255,.08);border-radius:7px;overflow:hidden}
+.bar .t i{display:block;height:100%;background:var(--pink);border-radius:7px}
+.bar .n{text-align:right;color:var(--mut)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--mut);font-weight:600}
+.tbl{overflow-x:auto}
+.msg{margin-top:24px;background:var(--card);border-radius:14px;padding:16px}
+input{background:#0e1230;border:1px solid var(--line);color:#fff;border-radius:10px;padding:8px 10px;font:inherit;margin:10px 8px 0 0}
+button{background:#fff;color:#1b2050;border:0;border-radius:999px;padding:8px 16px;font:inherit;font-weight:700;cursor:pointer}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>Plopi · statistiques</h1><div class="sub">Données anonymes des joueurs. Le mode <code>?test</code> n'est jamais compté. <span id="asof"></span></div></header>
+<div id="state" class="msg">Chargement…</div>
+<section id="report" hidden>
+<div class="card"><h2>Verdict</h2><div class="verdict" id="verdict"></div><div class="sub" style="margin-top:4px">Règle : J+1 ≥ 35 % et J+7 ≥ 12 % → stores ; J+1 entre 25 et 35 % → corriger et retester ; en dessous → retravailler le jeu.</div></div>
+<div class="tiles" id="tiles"></div>
+<div class="card"><h2>Où les joueurs décrochent</h2><div class="sub" style="margin-bottom:8px">Part des joueurs qui ont atteint chaque étape au moins une fois.</div><div id="funnel"></div></div>
+<div class="card"><h2>Jour par jour (14 derniers jours)</h2><div class="tbl"><table id="tDays"></table></div></div>
+<div class="card"><h2>Rétention par jour d'arrivée</h2><div class="tbl"><table id="tCoh"></table></div></div>
+<div class="card"><h2>Danse de l'amour selon l'affinité</h2><div class="tbl"><table id="tDance"></table></div></div>
+<div class="card"><h2>D'où viennent les joueurs</h2><div class="tbl"><table id="tSrc"></table></div><h2 style="margin-top:16px">Sur quel appareil</h2><div class="tbl"><table id="tPlat"></table></div></div>
+</section>
+</div>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const pct=v=>v==null?'–':Math.round(v*100)+' %';
+const n=v=>v==null?'–':Number(v).toLocaleString('fr-FR',{maximumFractionDigits:1});
+const dd=d=>{const [y,m,j]=d.split('-');return j+'/'+m};
+let key='';try{key=localStorage.getItem('plopi_stats_key')||''}catch(e){}
+function askKey(err){$('state').hidden=false;$('report').hidden=true;$('state').innerHTML='<b>'+err+'</b><br>Entre la clé définie dans Vercel (variable <code>STATS_KEY</code>).<form id="f"><input id="k" type="password" placeholder="Clé des stats" aria-label="Clé des stats"><button>Afficher</button></form>';
+$('f').addEventListener('submit',e=>{e.preventDefault();key=$('k').value.trim();try{localStorage.setItem('plopi_stats_key',key)}catch(_){}load()})}
+async function load(){$('state').hidden=false;$('state').textContent='Chargement…';let r;
+try{r=await fetch('/api/stats?key='+encodeURIComponent(key),{cache:'no-store'})}catch(e){$('state').textContent='Impossible de joindre le serveur.';return}
+if(r.status===401){askKey(key?'Clé incorrecte.':'Ces statistiques sont protégées.');return}
+const j=await r.json().catch(()=>({}));if(!r.ok){$('state').innerHTML='<b>Statistiques indisponibles.</b><br>'+(j.error||('Erreur '+r.status));return}
+render(j)}
+function cls(v,good,mid){return v==null?'':v>=good?'ok':v>=mid?'warn':'bad'}
+function render(j){$('state').hidden=true;$('report').hidden=false;$('asof').textContent='Données au '+dd(j.today)+'.';
+const R=j.retention;let v;
+if(!j.players)v='<span class="sub">Aucun joueur pour l\'instant.</span>';
+else if(R.d1==null)v='<span class="warn">Trop tôt : il faut au moins un jour de recul pour mesurer le retour à J+1.</span>';
+else if(R.d1>=0.35&&R.d7!=null&&R.d7>=0.12)v='<span class="ok">Feu vert : J+1 '+pct(R.d1)+' et J+7 '+pct(R.d7)+'. Le jeu est prêt pour les stores.</span>';
+else if(R.d1>=0.35&&R.d7==null)v='<span class="ok">J+1 '+pct(R.d1)+' : très bon départ.</span> <span class="warn">Il faut attendre 7 jours pour juger J+7.</span>';
+else if(R.d1>=0.25)v='<span class="warn">À corriger : J+1 '+pct(R.d1)+'. Améliorer le jeu puis retester 2 semaines.</span>';
+else v='<span class="bad">À retravailler : J+1 '+pct(R.d1)+'. Le cœur du jeu ne retient pas encore.</span>';
+if(j.players&&j.players<30)v+='<div class="sub" style="font-weight:400;margin-top:4px">Attention : moins de 30 joueurs, les pourcentages bougent encore beaucoup.</div>';
+$('verdict').innerHTML=v;
+const last=j.days[j.days.length-1];const ms=j.days.map(d=>d.mins).filter(x=>x!=null);const avgMin=ms.length?ms.reduce((a,b)=>a+b,0)/ms.length:null;const T=j.totals14;
+const tiles=[['Joueurs',n(j.players)],['Actifs aujourd\'hui',n(last.active)],['Retour J+1','<span class="'+cls(R.d1,.35,.25)+'">'+pct(R.d1)+'</span>'],['Retour J+3',pct(R.d3)],['Retour J+7','<span class="'+cls(R.d7,.12,.08)+'">'+pct(R.d7)+'</span>'],['Minutes / joueur / jour',n(avgMin)],['Fusions (14 j)',n(T.fusion||0)],['Partages (14 j)',n(T.partage||0)]];
+$('tiles').innerHTML=tiles.map(t=>'<div class="tile"><div class="v">'+t[1]+'</div><div class="l">'+t[0]+'</div></div>').join('');
+const S=j.steps,base=S.open||0;const L=[['open','Ouvre le jeu'],['eclos','Fait éclore un œuf'],['grand','Premier Grand'],['maj','Premier Majestueux'],['danse','Lance une danse'],['fusion','Réussit une fusion'],['mystere','Fait éclore un œuf mystère']];
+$('funnel').innerHTML=L.map(([k,l])=>{const c=S[k]||0,p=base?c/base:0;return '<div class="bar"><span>'+l+'</span><span class="t"><i style="width:'+(p*100)+'%"></i></span><span class="n">'+c+' · '+pct(base?p:null)+'</span></div>'}).join('');
+$('tDays').innerHTML='<tr><th>Jour</th><th>Actifs</th><th>Nouveaux</th><th>Ouvertures</th><th>Min/joueur</th><th>Danses ✓/✗</th><th>Fusions</th><th>Partages</th></tr>'+j.days.slice().reverse().map(d=>'<tr><td>'+dd(d.day)+'</td><td>'+d.active+'</td><td>'+d.new+'</td><td>'+d.opens+'</td><td>'+n(d.mins)+'</td><td>'+d.danseOk+' / '+d.danseKo+'</td><td>'+d.fusions+'</td><td>'+d.partages+'</td></tr>').join('');
+$('tCoh').innerHTML='<tr><th>Arrivés le</th><th>Joueurs</th><th>J+1</th><th>J+3</th><th>J+7</th></tr>'+j.cohorts.filter(c=>c.size).reverse().map(c=>'<tr><td>'+dd(c.day)+'</td><td>'+c.size+'</td><td>'+pct(c.d1)+'</td><td>'+pct(c.d3)+'</td><td>'+pct(c.d7)+'</td></tr>').join('')+(j.cohorts.some(c=>c.size)?'':'<tr><td colspan="5">Pas encore de joueurs</td></tr>');
+let dh='<tr><th>Affinité</th><th>Réussies</th><th>Ratées</th><th>Taux de réussite</th></tr>';for(let b=10;b<=90;b+=10){const ok=+(j.dance[b+':ok']||0),ko=+(j.dance[b+':ko']||0);if(ok+ko)dh+='<tr><td>'+b+' – '+(b+9)+' %</td><td>'+ok+'</td><td>'+ko+'</td><td>'+pct(ok/(ok+ko))+'</td></tr>'}
+$('tDance').innerHTML=dh.includes('<td>')?dh:dh+'<tr><td colspan="4">Pas encore de danse</td></tr>';
+const tab=(o,h)=>'<tr><th>'+h+'</th><th>Joueurs</th></tr>'+(Object.entries(o).sort((a,b)=>b[1]-a[1]).map(([k,v])=>'<tr><td>'+k+'</td><td>'+v+'</td></tr>').join('')||'<tr><td colspan="2">–</td></tr>');
+$('tSrc').innerHTML=tab(j.bySrc,'Source (?src=)');
+const PL={'ios':'iPhone (navigateur)','ios-app':'iPhone (app installée)','android':'Android (navigateur)','android-app':'Android (app installée)','desktop':'Ordinateur','desktop-app':'Ordinateur (app)','autre':'Autre'};
+const pl={};for(const k in j.byPlat)pl[PL[k]||k]=j.byPlat[k];$('tPlat').innerHTML=tab(pl,'Appareil')}
+load()})();
+</script>
+</body>
+</html>
