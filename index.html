@@ -121,13 +121,15 @@ header{display:flex;justify-content:space-between;align-items:center;padding:8px
 #dheart{position:absolute;left:50%;width:22px;height:22px;margin:-11px 0 0 -11px;color:#fff;font-size:20px;line-height:22px;text-align:center}
 #dprog{position:absolute;left:50%;top:22%;height:62%;width:7px;margin-left:20px;background:rgba(255,255,255,.14);border-radius:9px;overflow:hidden}
 #dprog i{position:absolute;left:0;right:0;bottom:0;background:#ff6b8b}
+#dhand{position:absolute;left:50%;top:60%;width:30px;height:30px;margin-left:-60px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 0 6px rgba(255,107,139,.5);display:none;animation:dh 1.6s ease-in-out infinite}
+@keyframes dh{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(.8);opacity:1}}
 #dmsg{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:14px;font-weight:700;text-shadow:0 2px 4px rgba(0,0,0,.5)}
 </style>
 </head>
 <body>
 <div id="app">
 <header><div class="logo">Plopi</div><div class="seg" id="seg"><button data-s="nb">N&amp;B</button><button data-s="acc">Accents</button><button data-s="col" class="on">Couleur</button></div></header>
-<div id="stage"><div id="flash"></div><div id="bubble"></div><div id="dance"><div class="dt">Danse de l'amour<small id="daff"></small></div><div id="dbar"><div id="dzone"></div><div id="dheart">♥</div></div><div id="dprog"><i></i></div><div id="dmsg"></div></div><div id="banner"></div><div id="toast"></div></div>
+<div id="stage"><div id="flash"></div><div id="bubble"></div><div id="dance"><div class="dt">Danse de l'amour<small id="daff"></small></div><div id="dbar"><div id="dzone"></div><div id="dheart">♥</div></div><div id="dprog"><i></i></div><div id="dhand"></div><div id="dmsg"></div></div><div id="banner"></div><div id="toast"></div></div>
 <div id="info"></div>
 <div id="bar"><button class="barb" id="opendex">Plopidex <span id="dex"></span> ⤢</button><span id="sec"></span></div>
 <div id="garden"></div>
@@ -362,15 +364,15 @@ const SULK=60000;
 const danceEl=document.getElementById('dance'),dzone=document.getElementById('dzone'),dheart=document.getElementById('dheart'),dprogI=document.querySelector('#dprog i'),dmsg=document.getElementById('dmsg');let dn=null,holding=false;
 function merge(a,b){if(mode=='merge'||mode=='dance')return;const key=[a,b].sort().join('-');S.sulk=S.sulk||{};const sl=S.sulk[key];if(sl&&Date.now()-sl<SULK){toast('Ils boudent encore…<br>Réessaie dans '+Math.ceil((SULK-(Date.now()-sl))/1000)+' s');return}
 clearStage();mode='dance';banEl.classList.remove('on');const now=performance.now();const A=new P(a,2),B=new P(b,2);A.root.scale.setScalar(0.5);B.root.scale.setScalar(0.5);A.root.position.x=-7;B.root.position.x=7;scene.add(A.root);scene.add(B.root);tY=4;tD=Math.max(8/T,12/(T*cam.aspect));
-const af=affinity(a,b),q=(af-10)/85;dn={a,b,A,B,af,t0:now+1600,zone:0.13+0.23*q,zy:0.5,zv:0,hy:0.5,ht:0.5,nextT:0,nerv:0.42+0.88*q,spd:1.6-1.0*q,prog:0.3,inside:false,done:null,x:7};
-const pn=pairN(a,b);document.getElementById('daff').textContent=nameOf(a)+' + '+nameOf(b)+' · affinité '+af+' %'+(pn?' · déjà '+pn+(pn>1?' enfants':' enfant')+' ensemble, la flamme s\'use':'');danceEl.classList.add('on');dmsg.textContent='Maintiens le doigt pour monter la zone rose';
+const af=affinity(a,b),easy=!S.danced,q=easy?1:(af-10)/85;dn={a,b,A,B,af,easy,started:false,grace:0,t0:Infinity,zone:0.13+0.23*q,zy:0.5,zv:0,hy:0.5,ht:0.5,nextT:0,nerv:0.42+0.88*q,spd:1.6-1.0*q,prog:0.3,inside:false,done:null,x:7};
+const pn=pairN(a,b);document.getElementById('daff').textContent=nameOf(a)+' + '+nameOf(b)+' · affinité '+af+' %'+(pn?' · déjà '+pn+(pn>1?' enfants':' enfant')+' ensemble, la flamme s\'use':'');danceEl.classList.add('on');document.getElementById('dhand').style.display=easy?'block':'none';dmsg.textContent='Maintiens le doigt pour commencer';
 infoEl.innerHTML='<div class="nm">'+nameOf(a)+' + '+nameOf(b)+'</div><div class="sub">Garde son cœur dans la zone rose pour qu\'ils dansent</div>'}
 function danceTick(now){const D=dn,dt=1/60,{A,B}=D;
 if(now>=D.t0&&!D.done){D.zv+=(holding?1.9:-1.6)*dt;D.zv*=0.94;D.zy+=D.zv*dt;if(D.zy<D.zone/2){D.zy=D.zone/2;D.zv=Math.abs(D.zv)*0.3}if(D.zy>1-D.zone/2){D.zy=1-D.zone/2;D.zv=-Math.abs(D.zv)*0.3}
 if(now>D.nextT){D.ht=0.08+Math.random()*0.84;D.nextT=now+D.nerv*1000*(0.6+Math.random()*0.8)}D.hy+=(D.ht-D.hy)*D.spd*dt*2.2;
-D.inside=Math.abs(D.hy-D.zy)<D.zone/2;D.prog=Math.max(0,Math.min(1,D.prog+(D.inside?0.24:-0.17)*dt));dmsg.textContent=D.inside?'Ils dansent !':'Rattrape son cœur !';
-if(D.prog>=1){D.done={ok:true,t:now}}else if(D.prog<=0){D.done={ok:false,t:now};const key=[D.a,D.b].sort().join('-');S.sulk[key]=Date.now();save()}}
-else if(now<D.t0)dmsg.textContent='Prêt ? Maintiens le doigt pour monter la zone rose';
+D.inside=Math.abs(D.hy-D.zy)<D.zone/2;D.prog=Math.max(0,Math.min(1,D.prog+(D.inside?0.24:(now<D.grace?0:-0.17))*dt));dmsg.textContent=D.inside?'Ils dansent !':'Rattrape son cœur !';
+if(D.prog>=1){D.done={ok:true,t:now};S.danced=true;save()}else if(D.prog<=0){D.done={ok:false,t:now};S.danced=true;const key=[D.a,D.b].sort().join('-');S.sulk[key]=Date.now();save()}}
+else if(!D.started)dmsg.textContent=D.easy?'Maintiens le doigt : la zone rose monte. Relâche : elle descend. Garde le cœur dedans !':'Maintiens le doigt pour commencer';
 dzone.style.height=(D.zone*100)+'%';dzone.style.bottom=((D.zy-D.zone/2)*100)+'%';dheart.style.top=((1-D.hy)*100)+'%';dprogI.style.height=(D.prog*100)+'%';
 const target=6.5-3*D.prog;D.x+=(target-D.x)*0.1;A.root.position.x=-D.x;B.root.position.x=D.x;
 if(D.done&&!D.done.ok){A.update(now,{yaw:-1.3,hop:0});B.update(now,{yaw:1.3,hop:0});if(now-D.done.t>300&&!D.shown){D.shown=1;danceEl.classList.remove('on');banEl.innerHTML='<div class="bn"><div class="nm" style="font-size:19px">Ils boudent…</div><div class="nb" style="font-size:12px;opacity:.75">La danse n\'a pas pris. Réessaie dans 1 minute, ou soigne-les pour augmenter leur affinité.</div><div class="row"><button class="bt bt1" id="ok">D\'accord</button></div></div>';banEl.classList.add('on');document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');dn=null;showSel()}}return}
@@ -399,7 +401,7 @@ document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');showSel(
 renderGarden();infoEl.innerHTML='<div class="nm">'+dname(k)+'</div>'}
 // ================= toucher (scène) =================
 function toWorld(cx,cy){const r=stageEl.getBoundingClientRect();const vh=2*camD*T,vw=vh*cam.aspect;fx=((cx-r.left)/r.width-0.5)*vw;fy=camY+(0.5-(cy-r.top)/r.height)*vh}
-stageEl.addEventListener('pointerdown',e=>{holding=true;if(e.target.closest('.bt'))return;touching=true;downT=performance.now();moved=0;lx=e.clientX;ly=e.clientY;toWorld(e.clientX,e.clientY)});
+stageEl.addEventListener('pointerdown',e=>{holding=true;if(mode=='dance'&&dn&&!dn.started){const n=performance.now();dn.started=true;dn.t0=n;dn.grace=n+2000;document.getElementById('dhand').style.display='none'}if(e.target.closest('.bt'))return;touching=true;downT=performance.now();moved=0;lx=e.clientX;ly=e.clientY;toWorld(e.clientX,e.clientY)});
 stageEl.addEventListener('pointermove',e=>{if(!touching)return;moved+=Math.abs(e.clientX-lx)+Math.abs(e.clientY-ly);lx=e.clientX;ly=e.clientY;toWorld(e.clientX,e.clientY)});
 addEventListener('pointerup',()=>{holding=false});addEventListener('pointercancel',()=>{holding=false});
 stageEl.addEventListener('pointerup',e=>{touching=false;if(mode=='dance')return;const now=performance.now();if(moved<12&&now-downT<400&&cur&&!cur.asm&&!e.target.closest('.bt')){cur.tap(now);if(mode=='view'&&now-lastLove>450){lastLove=now;giveLove(S.sel,1)}if(S.tuto<1){S.tuto=1;save();updateTuto()}}});
