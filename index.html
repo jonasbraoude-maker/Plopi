@@ -148,7 +148,7 @@ const SECRETS=[
 {a:'Lunio',b:'Doudo',n:'Rêvéa',num:25,g:{h:6,b:2,i:6,e:1,c:7},r:3},
 {a:'Ploufi',b:'Doudo',n:'Pluvie',num:13,g:{h:6,b:1,i:3,e:1,c:3},r:3}];
 const SPECIAL=[...BASES,...SECRETS];
-const STAGES=['Bébé','Grand','Majestueux'],LV=[10,20];
+const STAGES=['Bébé','Grand','Majestueux'],LV=[10,20],HATCH=5,MOOD=[5*60e3,10*60e3,15*60e3],DECAY=60e3;
 const code=g=>g.h+NH*(g.b+NBo*(g.i+NI*(g.e+NE*g.c)));
 const decode=k=>{const g={};g.h=k%NH;k=Math.floor(k/NH);g.b=k%NBo;k=Math.floor(k/NBo);g.i=k%NI;k=Math.floor(k/NI);g.e=k%NE;g.c=Math.floor(k/NE);return g};
 const special=k=>SPECIAL.find(s=>code(s.g)===k);
@@ -216,8 +216,8 @@ function colorOf(v,g){const B=COLORS[g.c];switch(v.t){case'b':return STYLE=='col
 // ================= Plopi 3D =================
 const GEO=new THREE.BoxGeometry(0.94,0.94,0.94),SG=new THREE.BoxGeometry(0.55,0.55,0.55),HG=new THREE.BoxGeometry(0.5,0.5,0.5),MAT=new THREE.MeshLambertMaterial(),col=new THREE.Color(),dm=new THREE.Object3D();
 const ease=p=>{const c1=1.4,c3=c1+1;return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2)};
-class P{constructor(k,si){this.k=k;this.si=si;const D=this.D=genVox(k,si),g=this.g=D.g,s=this.s=D.s;this.root=new THREE.Group();this.root.userData.plopi=1;this.inner=new THREE.Group();this.root.add(this.inner);
-this.base=D.out.map(v=>colorOf(v,g));const m=this.mesh=new THREE.InstancedMesh(GEO,MAT,D.out.length);this.tg=D.out.map(v=>new THREE.Vector3(v.x,v.y+1,v.z));
+class P{constructor(k,si,mood){this.k=k;this.si=si;this.mood=mood||0;const D=this.D=genVox(k,si),g=this.g=D.g,s=this.s=D.s;this.root=new THREE.Group();this.root.userData.plopi=1;this.inner=new THREE.Group();this.root.add(this.inner);
+this.base=D.out.map(v=>{const c=colorOf(v,g);return this.mood?new THREE.Color(c).lerp(new THREE.Color(0x8d8fa6),this.mood==1?0.35:0.55).getHex():c});const m=this.mesh=new THREE.InstancedMesh(GEO,MAT,D.out.length);this.tg=D.out.map(v=>new THREE.Vector3(v.x,v.y+1,v.z));
 this.tg.forEach((t,i)=>{dm.position.copy(t);dm.scale.setScalar(1);dm.updateMatrix();m.setMatrixAt(i,dm.matrix);m.setColorAt(i,col.set(this.base[i]))});m.instanceColor.needsUpdate=true;this.inner.add(m);
 const am=new THREE.MeshLambertMaterial({color:STYLE=='col'?dark(COLORS[g.c],0.82):LIMB});
 this.arms=[-1,1].map(sg=>{const grp=new THREE.Group();grp.position.set(sg*(s.w+1),s.arm,0.5);grp.add(new THREE.Mesh(GEO,am));this.inner.add(grp);return grp});
@@ -231,6 +231,7 @@ const ck=blush?0xFF8FAA:(STYLE=='nb'?0xD2D2D2:0xF7A1B5);s.cheeks.forEach(([x,y])
 const R=g.e==1?Math.max(1,s.rows-1):s.rows,lo=s.rows>=3?2:1;const hlc=g.e==3?0xFFD95A:HL;
 for(const[ex,o,n]of s.eyes){if(st=='open'){for(let y=1;y<=R;y++){set(ex,y,EYE);set(ex+1,y,EYE)}if(R>=2)set(o,R,hlc);if(R==3)set(n,1,g.e==3?0xFFD95A:HL2)}
 else if(st=='closed'){set(ex,1,EYE);set(ex+1,1,EYE)}
+else if(st=='sad'){const r2=Math.max(1,R-1);for(let y=1;y<=r2;y++){set(ex,y,EYE);set(ex+1,y,EYE)}if(r2>=2)set(o,r2,hlc);set(o,0,0x8FD3FF)}
 else if(st=='happy'){if(ex<0){set(ex,lo,EYE);set(ex+1,lo+1,EYE)}else{set(ex,lo+1,EYE);set(ex+1,lo,EYE)}}
 if(g.e==2){const inn=ex<0?ex+1:ex;set(o,s.rows+2,EYE);set(inn,s.rows+1,EYE)}}
 if(st=='happy'){set(-1,1,EYE);set(0,0,EYE);set(1,1,EYE)}M.instanceColor.needsUpdate=true}
@@ -238,16 +239,31 @@ assemble(now){this.asm={t0:now,s:this.tg.map(t=>t.clone().add(new THREE.Vector3(
 tap(now){this.happyEnd=now+1100;this.hopT=now;this.taps=this.taps.filter(t=>now-t<2500);this.taps.push(now);if(this.taps.length>=3)this.blushEnd=now+2800;heart(this);if(Math.random()<0.6)heart(this)}
 update(now,c){const s=this.s;
 if(this.asm){const t=(now-this.asm.t0)/1000;for(let i=0;i<this.tg.length;i++){const p=Math.min(1,Math.max(0,(t-this.asm.d[i])/0.8));dm.position.lerpVectors(this.asm.s[i],this.tg[i],ease(p));dm.scale.setScalar(Math.max(0.01,Math.min(1,p*1.6)));dm.updateMatrix();this.mesh.setMatrixAt(i,dm.matrix)}this.mesh.instanceMatrix.needsUpdate=true;const vis=t>0.9;this.arms.forEach(a=>a.visible=vis);if(this.aura)this.aura.visible=vis;if(t>1.3){this.asm=null;this.hopT=now}}
-let st='open';if(now<this.happyEnd)st='happy';else{if(now>this.nextBlink&&!this.blinkEnd)this.blinkEnd=now+130;if(this.blinkEnd){st='closed';if(now>this.blinkEnd){this.blinkEnd=0;this.nextBlink=now+1800+Math.random()*2600}}}
+let st='open';if(now<this.happyEnd)st='happy';else if(this.mood==2)st='closed';else if(this.mood==1)st='sad';else{if(now>this.nextBlink&&!this.blinkEnd)this.blinkEnd=now+130;if(this.blinkEnd){st='closed';if(now>this.blinkEnd){this.blinkEnd=0;this.nextBlink=now+1800+Math.random()*2600}}}
 const bl=now<this.blushEnd,key=st+bl;if(key!==this.st){this.paint(st,bl);this.st=key}
 if(this.D.emb.length&&now-this.lastE>220){this.lastE=now;this.D.emb.forEach(i=>this.mesh.setColorAt(i,col.set(Math.random()<0.35?(STYLE=='nb'?0x8A8A8A:0xFF8A2E):this.base[i])));this.mesh.instanceColor.needsUpdate=true}
-const ht=(now-this.hopT)/1000;let h=0;if(ht<0.45)h=Math.sin(Math.PI*ht/0.45)*(c.hop!=null?c.hop:1.8);if(ht>=0.45&&ht<0.5&&this.sqT<this.hopT){this.sqT=now;this.sqA=0.6}
-const s2=(now-this.sqT)/1000;const sq=s2<1.2?this.sqA*Math.exp(-4.5*s2)*Math.cos(15*s2):0;const br=Math.sin(now/450)*0.02;
+const ht=(now-this.hopT)/1000;let h=0;if(ht<0.45)h=Math.sin(Math.PI*ht/0.45)*(c.hop!=null?c.hop:(this.mood&&now>this.happyEnd?0.4:1.8));if(ht>=0.45&&ht<0.5&&this.sqT<this.hopT){this.sqT=now;this.sqA=0.6}
+const s2=(now-this.sqT)/1000;const sq=s2<1.2?this.sqA*Math.exp(-4.5*s2)*Math.cos(15*s2):0;const br=this.mood==2?Math.sin(now/1000)*0.04-0.06:Math.sin(now/450)*0.02;
 let ty,tp;if(c.touching){ty=Math.atan2(c.fx-this.root.position.x,16);tp=-Math.atan2(c.fy-this.top*0.5,24)*0.5}else{ty=c.yaw!=null?c.yaw:Math.sin(now/2200)*0.4;tp=0}
 this.yaw+=(ty-this.yaw)*0.12;this.pitch+=(tp-this.pitch)*0.12;this.root.rotation.y=this.yaw;this.root.rotation.x=this.pitch;
 this.inner.scale.set(1+0.16*sq-br*0.5,1-0.22*sq+br,1+0.16*sq-br*0.5);this.root.position.y=(c.baseY||0)+h;
 const wave=now<this.happyEnd?Math.sin(now/70)*0.6:Math.sin(now/600)*0.1;this.arms[0].position.y=s.arm+wave;this.arms[1].position.y=s.arm-wave;
 if(this.aura){this.aura.rotation.y=now/1800;this.aura.children.forEach((q,i)=>q.position.y=2+((i*37)%10)+Math.sin(now/500+i)*0.5)}}}
+// ================= œuf =================
+function genEgg(k){const key='egg'+k;if(VC[key])return VC[key];const g=decode(k);const L=[];const sp=[COLORS[g.c],HEADCOL[g.h]||COLORS[g.c],(IC[g.i]&&IC[g.i][0][2])||0xFFD95A];
+for(let x=-4;x<=4;x++)for(let y=0;y<=11;y++)for(let z=-4;z<=4;z++){const yy=y-4.6,ry=yy>0?5.8:4.6;if(x*x/15+yy*yy/(ry*ry)+z*z/15<=1)L.push([x,y,z])}
+const set=new Set(L.map(v=>v.join(',')));const out=[];L.forEach(([x,y,z])=>{if(NB6.some(([a,b,c])=>!set.has([x+a,y+b,z+c].join(','))))out.push({x,y,z})});
+out.forEach(v=>{const h=(Math.imul(v.x+9,73856093)^Math.imul(v.y+9,19349663)^Math.imul(v.z+9,83492791))>>>0;v.sp=h%9==0;v.c=v.sp?sp[h%3]:0xFFF6E6});
+const crack=out.map((v,i)=>i).filter(i=>out[i].z>=2&&out[i].y>=3&&out[i].y<=8).sort((a,b)=>(Math.imul(a,2654435761)>>>0)%97-(Math.imul(b,2654435761)>>>0)%97);
+return VC[key]={out,crack,top:12}}
+class Egg{constructor(k){this.k=k;this.egg=true;const D=this.D=genEgg(k);this.s={w:4};this.top=D.top;this.root=new THREE.Group();this.root.userData.plopi=1;this.inner=new THREE.Group();this.root.add(this.inner);
+const m=this.mesh=new THREE.InstancedMesh(GEO,MAT,D.out.length);this.tg=D.out.map(v=>new THREE.Vector3(v.x,v.y,v.z));this.base=D.out.map(v=>STYLE=='nb'?(v.sp?gray(v.c):0xF2F2F2):v.c);
+this.tg.forEach((t,i)=>{dm.position.copy(t);dm.scale.setScalar(1);dm.updateMatrix();m.setMatrixAt(i,dm.matrix);m.setColorAt(i,col.set(this.base[i]))});m.instanceColor.needsUpdate=true;this.inner.add(m);this.wobT=-9;this.asm=null;this.hopT=0}
+setCrack(n){const N=Math.round(Math.min(1,n)*this.D.crack.length*0.45);this.D.crack.forEach((i,j)=>this.mesh.setColorAt(i,col.set(j<N?0x5A4A3A:this.base[i])));this.mesh.instanceColor.needsUpdate=true}
+assemble(now){this.asm={t0:now,s:this.tg.map(t=>t.clone().add(new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).normalize().multiplyScalar(8+Math.random()*12))),d:this.tg.map(()=>Math.random()*0.35)};this.update(now,{})}
+tap(now){this.wobT=now;heart(this)}
+update(now,c){if(this.asm){const t=(now-this.asm.t0)/1000;for(let i=0;i<this.tg.length;i++){const p=Math.min(1,Math.max(0,(t-this.asm.d[i])/0.8));dm.position.lerpVectors(this.asm.s[i],this.tg[i],ease(p));dm.scale.setScalar(Math.max(0.01,Math.min(1,p*1.6)));dm.updateMatrix();this.mesh.setMatrixAt(i,dm.matrix)}this.mesh.instanceMatrix.needsUpdate=true;if(t>1.3)this.asm=null}
+const t=(now-this.wobT)/1000;const w=t<0.9?Math.exp(-4*t)*Math.sin(t*26)*0.32:Math.sin(now/650)*0.05;this.root.rotation.z=w;this.root.rotation.y=Math.sin(now/2600)*0.35;this.root.position.y=c.baseY||0;const sq=t<0.3?(1-t/0.3)*0.08:0;this.inner.scale.set(1+sq,1-sq,1+sq)}}
 // ================= scène =================
 const stageEl=document.getElementById('stage');
 const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));stageEl.insertBefore(renderer.domElement,stageEl.firstChild);
@@ -264,38 +280,61 @@ function heart(p){const grp=new THREE.Group();const hm=new THREE.MeshLambertMate
 // ================= miniatures =================
 const r2=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});r2.setSize(160,160);const sc2=new THREE.Scene();sc2.add(new THREE.AmbientLight(0xffffff,0.62));const d2=new THREE.DirectionalLight(0xffffff,0.75);d2.position.set(6,12,10);sc2.add(d2);const c2=new THREE.PerspectiveCamera(30,1,0.1,300);
 const THUMB={};
-function thumb(k,si){const key=k+'_'+si+STYLE;if(THUMB[key])return THUMB[key];const p=new P(k,si);p.root.rotation.y=-0.38;sc2.add(p.root);const t=Math.max(p.top,si==0?9:si==1?13:17);c2.position.set(0,t*0.62,t*1.95+4);c2.lookAt(0,t*0.43,0);r2.render(sc2,c2);sc2.remove(p.root);return THUMB[key]=r2.domElement.toDataURL()}
+function thumb(k,si,egg){const key=k+'_'+(egg?'e':si)+STYLE;if(THUMB[key])return THUMB[key];const p=egg?new Egg(k):new P(k,si);p.root.rotation.y=-0.38;sc2.add(p.root);const t=egg?12:Math.max(p.top,si==0?9:si==1?13:17);c2.position.set(0,t*0.62,t*1.95+4);c2.lookAt(0,t*0.43,0);r2.render(sc2,c2);sc2.remove(p.root);return THUMB[key]=r2.domElement.toDataURL()}
 // ================= état =================
 let S={found:{},order:[],secrets:{},sel:null,tuto:0,style:'col'};
 try{const raw=localStorage.getItem('plopi-hyb-v3');if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
 STYLE=S.style||'col';
 function save(){try{localStorage.setItem('plopi-hyb-v3',JSON.stringify(S))}catch(e){}}
-function addFound(k,parents){if(S.found[k]){S.found[k].n++;return false}S.order.push(k);S.found[k]={rank:S.order.length,n:1,p:parents||null,st:0,love:0,fed:0,d:Date.now()};return true}
-if(!S.order.length){BASES.forEach(b=>addFound(code(b.g)));S.sel=code(BASES[4].g);save()}
+function addFound(k,parents){if(S.found[k]){S.found[k].n++;return false}S.order.push(k);S.found[k]={rank:S.order.length,n:1,p:parents||null,st:0,love:0,fed:0,d:Date.now(),egg:true,hatch:0,h:false,last:Date.now(),lost:0};return true}
+if(!S.order.length){BASES.forEach(b=>{const k=code(b.g);addFound(k);S.found[k].h=true});S.sel=code(BASES[4].g);save()}
+for(const k in S.found){const f=S.found[k];if(f.last==null)f.last=Date.now();if(f.h==null)f.h=true;if(f.egg==null)f.egg=false;if(f.hatch==null)f.hatch=0;if(f.lost==null)f.lost=0}
+const moodOf=f=>f.egg?3:(Date.now()-f.last<MOOD[0]?0:Date.now()-f.last<MOOD[1]?1:2);
+const mystery=k=>{const f=S.found[k];return f&&f.egg&&!f.h};
+const busyWith=k=>S.order.find(c=>{const f=S.found[c];return f.egg&&!f.h&&f.p&&f.p.includes(k)});
+const dname=k=>{const f=S.found[k];if(f&&f.egg)return f.h?'Œuf de '+nameOf(k):'Œuf mystère';return nameOf(k)};
+const dnum=k=>mystery(k)?'#???':numOf(k);
+const thumbFor=k=>{const f=S.found[k];return f&&f.egg?thumb(k,0,true):thumb(k,f?f.st:0)};
+function makeP(k){const f=S.found[k];if(f&&f.egg){const e=new Egg(k);e.setCrack(f.hatch/HATCH);return e}return new P(k,f?f.st:0,f?moodOf(f):0)}
 // ================= interface =================
 const gardenEl=document.getElementById('garden'),infoEl=document.getElementById('info'),dexEl=document.getElementById('dex'),secEl=document.getElementById('sec'),banEl=document.getElementById('banner'),toastEl=document.getElementById('toast'),flashEl=document.getElementById('flash'),bubEl=document.getElementById('bubble');
 let toastT=0;function toast(t){toastEl.innerHTML=t;toastEl.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>toastEl.style.opacity=0,2000)}
 const FEEDCD=15000;
 function info(k){const f=S.found[k];const r=rarityOf(k);
-let h='<div class="nm">'+nameOf(k)+' <span style="font-size:14px;opacity:.75;font-weight:500">'+STAGES[f.st]+'</span></div><div class="sub">'+numOf(k)+' · '+STARS(r)+' '+RNAME[r]+' · '+f.rank+(f.rank==1?'re':'e')+' découverte'+(f.p?' · '+nameOf(f.p[0])+' + '+nameOf(f.p[1]):'')+'</div>';
+if(f.egg){let h='<div class="nm">'+dname(k)+'</div><div class="sub">'+dnum(k)+(f.h?' · '+STAGES[f.st]+' endormi dans son œuf':' · Fais-le éclore pour découvrir qui il est !')+(f.p?' · '+dname(f.p[0])+' + '+dname(f.p[1]):'')+'</div>';
+const left=Math.max(0,Math.ceil((FEEDCD-(Date.now()-f.fed))/1000));h+='<div class="care"><span class="lv">Câlins '+f.hatch+'/'+HATCH+'</span><div class="gauge"><i style="width:'+(100*f.hatch/HATCH)+'%"></i></div><button class="feed" id="feed" '+(left>0?'disabled':'')+'>'+(left>0?'Chaleur '+left+' s':'Réchauffer +3')+'</button><button class="tst" id="tst">+10 test</button></div>';
+h+='<div style="margin-top:3px"><button class="barb" id="fopen">Voir la fiche ›</button></div>';infoEl.innerHTML=h;document.getElementById('fopen').onclick=()=>openFiche(k);document.getElementById('feed').onclick=()=>{if(Date.now()-f.fed<FEEDCD)return;f.fed=Date.now();if(cur)cur.tap(performance.now());giveLove(k,3)};document.getElementById('tst').onclick=()=>giveLove(k,10);return}
+const md=moodOf(f);
+let h='<div class="nm">'+nameOf(k)+' <span style="font-size:14px;opacity:.75;font-weight:500">'+STAGES[f.st]+'</span></div>'+(md==1?'<div class="sub" style="color:#ff8fb0;opacity:1">Il est triste… fais-lui un câlin !</div>':md==2?'<div class="sub" style="color:#ff6b8b;opacity:1;font-weight:700">Il est épuisé ! Il va bientôt retourner dans son œuf</div>':'')+'<div class="sub">'+numOf(k)+' · '+STARS(r)+' '+RNAME[r]+' · '+f.rank+(f.rank==1?'re':'e')+' découverte'+(f.p?' · '+nameOf(f.p[0])+' + '+nameOf(f.p[1]):'')+'</div>';
 if(f.st<2){const need=LV[f.st];const left=Math.max(0,Math.ceil((FEEDCD-(Date.now()-f.fed))/1000));h+='<div class="care"><span class="lv">♥ '+f.love+'/'+need+'</span><div class="gauge"><i style="width:'+(100*f.love/need)+'%"></i></div><button class="feed" id="feed" '+(left>0?'disabled':'')+'>'+(left>0?'Repas '+left+' s':'Nourrir +3')+'</button><button class="tst" id="tst">+10 test</button></div>'}
-else h+='<div class="care"><span class="fusok">✦ Majestueux · peut fusionner</span></div>';
+else{const bz=busyWith(k);h+=bz?'<div class="care"><span class="fusok" style="color:#8fd3ff">✦ Majestueux · couve son œuf</span></div>':'<div class="care"><span class="fusok">✦ Majestueux · peut fusionner</span></div>'}
 h+='<div style="margin-top:3px"><button class="barb" id="fopen">Voir la fiche ›</button></div>';infoEl.innerHTML=h;document.getElementById('fopen').onclick=()=>openFiche(k);const fb=document.getElementById('feed');if(fb)fb.onclick=()=>{if(Date.now()-f.fed<FEEDCD)return;f.fed=Date.now();if(cur)cur.tap(performance.now());giveLove(k,3)};const tb=document.getElementById('tst');if(tb)tb.onclick=()=>giveLove(k,10)}
-let feedTimer=0;setInterval(()=>{if(mode=='view'&&S.sel!=null){const f=S.found[S.sel];if(f.st<2&&Date.now()-f.fed<FEEDCD+1000)info(S.sel)}},1000);
-function cardHTML(k){const f=S.found[k],r=rarityOf(k);const pct=f.st<2?100*f.love/LV[f.st]:100;return '<div class="card'+(k===S.sel?' sel':'')+(f.st==2?' maj':'')+'" data-k="'+k+'"><img src="'+thumb(k,f.st)+'"><span class="stg">'+(f.st==2?'Maj.':STAGES[f.st])+'</span><div class="cn">'+nameOf(k)+'</div><div class="cs">'+numOf(k)+' '+STARS(r)+'</div>'+(f.st<2?'<div class="mini"><i style="width:'+pct+'%"></i></div>':'')+'</div>'}
+const prevMood={};
+setInterval(()=>{const now=Date.now();let ch=false;S.order.forEach(k=>{const f=S.found[k];if(!f.egg){const e=now-f.last;if(e>=MOOD[2]){f.egg=true;f.hatch=0;ch=true}else if(e>MOOD[0]){const loss=Math.floor((e-MOOD[0])/DECAY);if(loss>f.lost){f.love=Math.max(0,f.love-(loss-f.lost));f.lost=loss;ch=true}}}
+const m=moodOf(f);if(prevMood[k]!==undefined&&prevMood[k]!==m&&!drag&&!press){refreshCard(k);if(k===S.sel&&mode=='view'){showSel();if(m==3)toast(nameOf(k)+' s\'est réfugié dans son œuf…<br>Câline-le pour le faire ressortir')}}prevMood[k]=m});
+if(ch)save();if(mode=='view'&&S.sel!=null){const f=S.found[S.sel];if(now-f.fed<FEEDCD+1000||ch)info(S.sel)}},1000);
+function cardHTML(k){const f=S.found[k],r=rarityOf(k),md=moodOf(f);const pct=f.egg?100*f.hatch/HATCH:f.st<2?100*f.love/LV[f.st]:100;const lab=f.egg?'Œuf':(f.st==2?'Maj.':STAGES[f.st])+(md==1?' · triste':md==2?' · épuisé':(f.st==2&&busyWith(k)?' · couve':''));return '<div class="card'+(k===S.sel?' sel':'')+(f.st==2&&!f.egg?' maj':'')+'" data-k="'+k+'"><img src="'+thumbFor(k)+'"><span class="stg"'+(md==1||md==2?' style="background:#ff6b8b"':'')+'>'+lab+'</span><div class="cn">'+dname(k)+'</div><div class="cs">'+dnum(k)+' '+(mystery(k)?'':STARS(r))+'</div>'+(f.egg||f.st<2?'<div class="mini"><i style="width:'+pct+'%"></i></div>':'')+'</div>'}
 function renderGarden(){gardenEl.innerHTML=S.order.map(cardHTML).join('');dexEl.textContent=S.order.length;secEl.textContent='Recettes secrètes : '+Object.keys(S.secrets).length+'/'+SECRETS.length}
 function refreshCard(k){const el=gardenEl.querySelector('.card[data-k="'+k+'"]');if(el)el.outerHTML=cardHTML(k)}
 document.querySelectorAll('#seg button').forEach(b=>{b.classList.toggle('on',b.dataset.s===STYLE);b.onclick=()=>{STYLE=b.dataset.s;S.style=STYLE;save();document.querySelectorAll('#seg button').forEach(x=>x.classList.toggle('on',x===b));if(mode=='view')showSel();renderGarden()}});
 // ================= soin & évolution =================
 let lastLove=0;
-function giveLove(k,n){const f=S.found[k];if(f.st>=2)return;f.love+=n;if(f.love>=LV[f.st]){f.love=0;f.st++;save();evolve(k)}else{save();info(k);refreshCard(k)}}
+function giveLove(k,n){const f=S.found[k];if(f.egg){f.hatch+=n;f.last=Date.now();if(cur&&cur.egg&&cur.k===k)cur.setCrack(f.hatch/HATCH);if(f.hatch>=HATCH)hatch(k);else{save();info(k);refreshCard(k)}return}const pm=moodOf(f);f.last=Date.now();f.lost=0;if(pm>0&&cur&&cur.k===k){save();showSel();cur.tap(performance.now());refreshCard(k)}if(f.st>=2){save();return}f.love+=n;if(f.love>=LV[f.st]){f.love=0;f.st++;save();evolve(k)}else{save();info(k);refreshCard(k)}}
 function evolve(k){const f=S.found[k];clearStage();mode='view';cur=new P(k,f.st);scene.add(cur.root);cur.assemble(performance.now());frame(cur.top,cur.s.w+3);flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go');
 for(let i=0;i<24;i++)puff([0xFFD95A,0xFF7FA0,0xFFFFFF][i%3],new THREE.Vector3(0,4,1),new THREE.Vector3((Math.random()-.5)*22,8+Math.random()*10,(Math.random()-.5)*8),1.6,18,0.5);
 toast(nameOf(k)+' a grandi ! Il est maintenant <b>'+STAGES[f.st]+'</b>'+(f.st==2?'<br>Il peut fusionner ✦':''));info(k);refreshCard(k);updateTuto()}
+function hatch(k){const f=S.found[k];f.egg=false;f.hatch=0;f.last=Date.now();f.lost=0;const first=!f.h;f.h=true;save();clearStage();mode='view';
+const D=genEgg(k);for(let i=0;i<30;i++){const v=D.out[i*7%D.out.length];puff(i%4?0xFFF6E6:v.c,new THREE.Vector3(0,5,1),new THREE.Vector3((Math.random()-.5)*22,7+Math.random()*10,(Math.random()-.5)*10),1.5,18,0.6)}
+flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go');cur=new P(k,f.st,0);scene.add(cur.root);cur.assemble(performance.now());frame(cur.top,cur.s.w+3);renderGarden();info(k);
+if(first)setTimeout(()=>birthBanner(k),900);else toast(nameOf(k)+' est ressorti de son œuf !')}
+function birthBanner(k){const r=rarityOf(k);const f=S.found[k];if(r>=2){const cs=r==4?[0xFFD95A,0xF0B429,0xFFF1A8]:r==3?[0xE3A6FF,0xFF7EB3,0x8FB4FF]:[0x8FD3FF,0xFFFFFF];for(let i=0;i<(r*14);i++)puff(cs[i%cs.length],new THREE.Vector3(0,6,1),new THREE.Vector3((Math.random()-.5)*26,10+Math.random()*12,(Math.random()-.5)*10),1.8,18,0.5)}
+banEl.innerHTML='<div class="bn"><div class="nm">C\'est '+nameOf(k)+' !<span class="new">Nouveau !</span></div><div class="nb">'+numOf(k)+' · '+STARS(r)+' '+RNAME[r]+(f.sec?' · Recette secrète !':'')+'</div>'+(f.p?'<div class="nb" style="font-size:12px;opacity:.7">'+nameOf(f.p[0])+' et '+nameOf(f.p[1])+' peuvent de nouveau fusionner</div>':'')+'<div class="row"><button class="bt bt2" id="share">Partager</button><button class="bt bt1" id="ok">Super !</button></div></div>';banEl.classList.add('on');
+document.getElementById('ok').onclick=()=>banEl.classList.remove('on');
+document.getElementById('share').onclick=()=>{const txt='J\'ai fait éclore '+nameOf(k)+' '+numOf(k)+' '+'★'.repeat(r)+' sur Plopi ! Et toi, tu as quoi ?';try{navigator.clipboard.writeText(txt).then(()=>toast('Copié ! Colle-le où tu veux'),()=>toast(txt))}catch(e){toast(txt)}}}
 // ================= modes =================
 let mode='view',cur=null,mg=null,touching=false,fx=0,fy=0,downT=0,moved=0,lx=0,ly=0;
 function clearStage(){if(cur){scene.remove(cur.root);cur=null}if(mg){[mg.A,mg.B,mg.C].forEach(p=>p&&scene.remove(p.root));mg=null}for(let i=scene.children.length-1;i>=0;i--){const o=scene.children[i];if(o.userData.plopi)scene.remove(o)}}
-function showSel(){clearStage();mode='view';const f=S.found[S.sel];cur=new P(S.sel,f.st);scene.add(cur.root);frame(cur.top,cur.s.w+3);info(S.sel);banEl.classList.remove('on')}
+function showSel(){clearStage();mode='view';cur=makeP(S.sel);scene.add(cur.root);frame(cur.top,cur.s.w+3);info(S.sel);banEl.classList.remove('on')}
 function select(k){S.sel=k;save();showSel();cur.hopT=performance.now();gardenEl.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',+c.dataset.k===k))}
 function breed(a,b){const ga=decode(a),gb=decode(b);const na=special(a),nb=special(b);
 if(na&&nb){const sc=SECRETS.find(s=>(s.a==na.n&&s.b==nb.n)||(s.a==nb.n&&s.b==na.n));if(sc&&Math.random()<0.5)return{k:code(sc.g),secret:sc}}
@@ -318,15 +357,13 @@ function mergeTick(now){if(mg.fail)return failTick(now);const t=(now-mg.t0)/1000
 if(t<0.9&&A&&B){const p=Math.min(1,t/0.9);const x=7-5*p*p;A.root.position.x=-x;B.root.position.x=x;const hp=Math.abs(Math.sin(t*Math.PI*3.3))*1.6;A.update(now,{yaw:0.7,baseY:hp,hop:0});B.update(now,{yaw:-0.7,baseY:hp,hop:0})}
 else if(!mg.burst){mg.burst=true;scene.remove(A.root);scene.remove(B.root);mg.A=mg.B=null;flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go');
 const cs=[COLORS[decode(mg.a).c],COLORS[decode(mg.b).c],0xFFFFFF,0xFF7FA0];for(let i=0;i<34;i++)puff(cs[i%4],new THREE.Vector3(0,4,1),new THREE.Vector3((Math.random()-.5)*24,8+Math.random()*12,(Math.random()-.5)*10),1.6,18,0.55)}
-if(t>1.05&&!mg.C){const C=new P(mg.res.k,0);scene.add(C.root);C.assemble(now);mg.C=C;cur=C;frame(C.top,C.s.w+3)}
+if(t>1.05&&!mg.C){const ex=S.found[mg.res.k];const C=ex&&!ex.egg?new P(mg.res.k,ex.st,0):new Egg(mg.res.k);scene.add(C.root);C.assemble(now);mg.C=C;cur=C;frame(C.top,C.s.w+3)}
 if(mg.C)mg.C.update(now,{touching,fx,fy});
 if(t>2.4&&!mg.done){mg.done=true;finishMerge()}}
-function finishMerge(){const k=mg.res.k;const isNew=addFound(k,[mg.a,mg.b]);if(!isNew){S.found[k].love=Math.min((S.found[k].st<2?LV[S.found[k].st]-1:0),S.found[k].love+5)}if(mg.res.secret)S.secrets[mg.res.secret.n]=1;S.sel=k;if(S.tuto<2)S.tuto=2;save();hideTuto();
-const r=rarityOf(k);if(r>=2){const cs=r==4?[0xFFD95A,0xF0B429,0xFFF1A8]:r==3?[0xE3A6FF,0xFF7EB3,0x8FB4FF]:[0x8FD3FF,0xFFFFFF];for(let i=0;i<(r*14);i++)puff(cs[i%cs.length],new THREE.Vector3(0,6,1),new THREE.Vector3((Math.random()-.5)*26,10+Math.random()*12,(Math.random()-.5)*10),1.8,18,0.5)}
-banEl.innerHTML='<div class="bn"><div class="nm">'+nameOf(k)+(isNew?'<span class="new">Nouveau !</span>':'')+'</div><div class="nb">'+numOf(k)+' · '+STARS(r)+' '+RNAME[r]+(mg.res.secret?' · Recette secrète !':'')+'</div><div class="nb" style="font-size:12px;opacity:.7">'+(isNew?'Un bébé est né ! Prends soin de lui pour qu\'il grandisse.':'Déjà dans ton Plopidex : +5 ♥ pour lui')+'</div><div class="row"><button class="bt bt2" id="share">Partager</button><button class="bt bt1" id="ok">Super !</button></div></div>';banEl.classList.add('on');
-const dk=k;document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');mg=null;showSel()};
-document.getElementById('share').onclick=()=>{const txt='J\'ai créé '+nameOf(dk)+' '+numOf(dk)+' '+'★'.repeat(r)+' sur Plopi ! Et toi, tu as quoi ?';try{navigator.clipboard.writeText(txt).then(()=>toast('Copié ! Colle-le où tu veux'),()=>toast(txt))}catch(e){toast(txt)}};
-renderGarden();infoEl.innerHTML='<div class="nm">'+nameOf(k)+' <span style="font-size:14px;opacity:.75;font-weight:500">Bébé</span></div>'}
+function finishMerge(){const k=mg.res.k;const isNew=addFound(k,[mg.a,mg.b]);[mg.a,mg.b].forEach(x=>{S.found[x].last=Date.now();S.found[x].lost=0});if(isNew&&mg.res.secret)S.found[k].sec=true;if(!isNew){S.found[k].love=Math.min((S.found[k].st<2?LV[S.found[k].st]-1:0),S.found[k].love+5)}if(mg.res.secret)S.secrets[mg.res.secret.n]=1;S.sel=k;if(S.tuto<2)S.tuto=2;save();hideTuto();
+banEl.innerHTML='<div class="bn"><div class="nm">'+(isNew?'Un œuf mystère !':nameOf(k))+'</div><div class="nb" style="font-size:13px;opacity:.8">'+(isNew?'Touche-le '+HATCH+' fois pour le faire éclore.<br>En attendant, '+nameOf(mg.a)+' et '+nameOf(mg.b)+' le couvent et ne peuvent pas fusionner.':'Déjà dans ton Plopidex : +5 ♥ pour lui')+'</div><div class="row"><button class="bt bt1" id="ok">D\'accord</button></div></div>';banEl.classList.add('on');
+document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');showSel()};
+renderGarden();infoEl.innerHTML='<div class="nm">'+dname(k)+'</div>'}
 // ================= toucher (scène) =================
 function toWorld(cx,cy){const r=stageEl.getBoundingClientRect();const vh=2*camD*T,vw=vh*cam.aspect;fx=((cx-r.left)/r.width-0.5)*vw;fy=camY+(0.5-(cy-r.top)/r.height)*vh}
 stageEl.addEventListener('pointerdown',e=>{if(e.target.closest('.bt'))return;touching=true;downT=performance.now();moved=0;lx=e.clientX;ly=e.clientY;toWorld(e.clientX,e.clientY)});
@@ -340,7 +377,7 @@ function startPress(e){const card=e.target.closest('.card');if(!card||mode=='mer
 function beginDrag(x,y){if(!press)return;drag={card:press.card,k:+press.card.dataset.k};press.card.classList.add('lift');ghost.src=press.card.querySelector('img').src;ghost.style.display='block';moveGhost(x,y);try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}}
 function moveGhost(x,y){ghost.style.left=x+'px';ghost.style.top=y+'px';const el=document.elementFromPoint(x,y);let t=el&&el.closest('.card');if(t===drag.card)t=null;const onStage=el&&el.closest('#stage');if(tgt&&tgt!==t)tgt.classList.remove('tgt');tgt=t;if(t)t.classList.add('tgt');drag.stage=!t&&!!onStage}
 function onMove(e){if(drag){if(e.cancelable)e.preventDefault();const p=pt(e);moveGhost(p.clientX,p.clientY);return}if(press){const p=pt(e);if(Math.abs(p.clientX-press.x)+Math.abs(p.clientY-press.y)>10){clearTimeout(press.timer);press=null}}}
-function tryMerge(a,b){const fa=S.found[a],fb=S.found[b];if(fa.st<2){toast('Seul un Plopi <b>Majestueux</b> peut fusionner.<br>Prends soin de '+nameOf(a)+' pour qu\'il grandisse !');return}if(fb.st<2){toast(nameOf(b)+' doit être <b>Majestueux</b> aussi');return}merge(a,b)}
+function tryMerge(a,b){const fa=S.found[a],fb=S.found[b];if(fa.egg||fb.egg){toast('Un œuf ne peut pas fusionner.<br>Fais-le éclore d\'abord !');return}for(const x of[a,b]){const bz=busyWith(x);if(bz){toast(nameOf(x)+' couve son œuf.<br>Fais d\'abord éclore l\'œuf mystère !');return}}if(fa.st<2){toast('Seul un Plopi <b>Majestueux</b> peut fusionner.<br>Prends soin de '+nameOf(a)+' pour qu\'il grandisse !');return}if(fb.st<2){toast(nameOf(b)+' doit être <b>Majestueux</b> aussi');return}merge(a,b)}
 function onEnd(e){if(drag){const a=drag.k;let b=null;if(tgt){b=+tgt.dataset.k;tgt.classList.remove('tgt')}else if(drag.stage&&S.sel!==a)b=S.sel;drag.card.classList.remove('lift');ghost.style.display='none';drag=null;tgt=null;if(b!=null&&b!==a)tryMerge(a,b);else toast('Lâche-le sur un autre Plopi');return}
 if(press){clearTimeout(press.timer);const k=+press.card.dataset.k;press=null;if(mode!='merge')select(k)}}
 gardenEl.addEventListener('touchstart',startPress,{passive:true});gardenEl.addEventListener('mousedown',startPress);
@@ -349,9 +386,9 @@ document.addEventListener('touchend',onEnd);document.addEventListener('mouseup',
 gardenEl.addEventListener('contextmenu',e=>e.preventDefault());
 // ================= tutoriel =================
 const tutoEl=document.getElementById('tuto'),hand=document.getElementById('hand');let tutoPair=null;
-function majs(){return S.order.filter(k=>S.found[k].st==2)}
+function majs(){return S.order.filter(k=>S.found[k].st==2&&!S.found[k].egg&&!busyWith(k))}
 function updateTuto(){bubEl.style.display='none';tutoEl.style.display='none';hand.style.display='none';tutoPair=null;
-if(S.tuto<1){bubEl.textContent='Touche ton Plopi pour lui faire un câlin ♥';bubEl.style.display='block';return}
+if(S.tuto<1){bubEl.textContent=cur&&cur.egg?'Touche l\'œuf pour le faire éclore ♥':'Touche ton Plopi pour lui faire un câlin ♥';bubEl.style.display='block';return}
 if(S.tuto<2){const m=majs();if(m.length>=2){tutoPair=m.slice(0,2);tutoEl.style.display='block';hand.style.display='block'}else if(m.length<2){bubEl.textContent='Fais grandir 2 Plopis jusqu\'à Majestueux';bubEl.style.display='block'}}}
 function hideTuto(){updateTuto()}
 function tutoTick(now){if(!tutoPair)return;const a=gardenEl.querySelector('.card[data-k="'+tutoPair[0]+'"]'),b=gardenEl.querySelector('.card[data-k="'+tutoPair[1]+'"]');if(!a||!b)return;const ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();const p=(now%2200)/2200;const q=p<0.2?0:p>0.8?1:(p-0.2)/0.6;const e=q<.5?2*q*q:1-Math.pow(-2*q+2,2)/2;const x=ra.left+ra.width/2+(rb.left-ra.left)*e,y=ra.top+ra.height/2+(rb.top-ra.top)*e;hand.style.left=(x-17)+'px';hand.style.top=(y-17)+'px';hand.style.opacity=p>0.9?0:1;tutoEl.style.top=(Math.min(ra.top,rb.top)-40)+'px'}
@@ -360,17 +397,17 @@ const dexov=document.getElementById('dexov'),dgrid=document.getElementById('dgri
 let dFilter='all',dSel=false,dPick=[];
 function openDex(sel){dSel=!!sel;dPick=[];dexov.classList.add('on');renderDex()}
 function closeDex(){dexov.classList.remove('on');dSel=false;dPick=[]}
-function renderDex(){let list=S.order.slice();if(dFilter=='maj')list=list.filter(k=>S.found[k].st==2);if(dFilter=='rare')list=list.filter(k=>rarityOf(k)>=2);
-let h=list.map(k=>{let c=cardHTML(k);const f=S.found[k];const pi=dPick.indexOf(k);if(dSel&&f.st<2)c=c.replace('class="card','class="card dim');if(pi>=0)c=c.replace('class="card','class="card pick').replace('</div>','<span class="pickn">'+(pi+1)+'</span></div>');return c}).join('');
+function renderDex(){let list=S.order.slice();if(dFilter=='maj')list=list.filter(k=>S.found[k].st==2&&!S.found[k].egg);if(dFilter=='rare')list=list.filter(k=>rarityOf(k)>=2);
+let h=list.map(k=>{let c=cardHTML(k);const f=S.found[k];const pi=dPick.indexOf(k);if(dSel&&(f.st<2||f.egg||busyWith(k)))c=c.replace('class="card','class="card dim');if(pi>=0)c=c.replace('class="card','class="card pick').replace('</div>','<span class="pickn">'+(pi+1)+'</span></div>');return c}).join('');
 if(dFilter=='all')SECRETS.forEach(sc=>{if(!S.secrets[sc.n])h+='<div class="lock"><b>?</b>Recette secrète<br>#'+String(sc.num).padStart(3,'0')+'</div>'});
 dgrid.innerHTML=h||'<div style="grid-column:1/-1;text-align:center;opacity:.6;padding:30px 0">Aucun Plopi ici pour l\'instant</div>';
-document.getElementById('dcount').textContent=S.order.length+' découverts · '+S.order.filter(k=>S.found[k].st==2).length+' Majestueux · recettes '+Object.keys(S.secrets).length+'/'+SECRETS.length;
+document.getElementById('dcount').textContent=S.order.length+' découverts · '+S.order.filter(k=>S.found[k].st==2&&!S.found[k].egg).length+' Majestueux · recettes '+Object.keys(S.secrets).length+'/'+SECRETS.length;
 dselb.textContent=dSel?'Annuler la sélection':'Choisir 2 à fusionner';dact.classList.toggle('on',dSel);
-dslots.innerHTML=[0,1].map(i=>dPick[i]!=null?'<img src="'+thumb(dPick[i],S.found[dPick[i]].st)+'">':'<div class="ph"></div>').join('<span>+</span>')+(dPick.length==2?'<span style="margin-left:4px">'+nameOf(dPick[0])+' + '+nameOf(dPick[1])+'</span>':'<span style="opacity:.6;margin-left:4px">Touche 2 Majestueux</span>');
+dslots.innerHTML=[0,1].map(i=>dPick[i]!=null?'<img src="'+thumbFor(dPick[i])+'">':'<div class="ph"></div>').join('<span>+</span>')+(dPick.length==2?'<span style="margin-left:4px">'+nameOf(dPick[0])+' + '+nameOf(dPick[1])+'</span>':'<span style="opacity:.6;margin-left:4px">Touche 2 Majestueux</span>');
 fuseb.disabled=dPick.length!=2}
 dgrid.addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;const k=+c.dataset.k;
 if(!dSel){openFiche(k);return}
-if(S.found[k].st<2){toast('Seul un Plopi <b>Majestueux</b> peut fusionner');return}
+if(S.found[k].st<2||S.found[k].egg){toast('Seul un Plopi <b>Majestueux</b> (pas en œuf) peut fusionner');return}if(busyWith(k)){toast(nameOf(k)+' couve son œuf');return}
 const i=dPick.indexOf(k);if(i>=0)dPick.splice(i,1);else{if(dPick.length==2)dPick.shift();dPick.push(k)}renderDex()});
 document.querySelectorAll('.dtools .chip[data-f]').forEach(b=>b.onclick=()=>{dFilter=b.dataset.f;document.querySelectorAll('.dtools .chip[data-f]').forEach(x=>x.classList.toggle('on',x===b));renderDex()});
 dselb.onclick=()=>{dSel=!dSel;dPick=[];if(dSel&&dFilter=='all'){}renderDex()};
@@ -381,30 +418,31 @@ fuseb.onclick=()=>{if(dPick.length!=2)return;const[a,b]=dPick;closeDex();tryMerg
 const HN=['Aucun','Bonnet de nuit','Pousse','Flamme','Couronne','Antenne étoile','Nuage'],BN=['Lisse','Rempli d\'eau','Masque de nuit','Braises','Rayures','Pois'],INm=['Aucune','Croissant','Fleur','Goutte','Nuage','Cœur','Étoile','Flamme'],ENm=['Normaux','Endormis','Boudeurs','Étoilés'],CNm=['Lavande','Rose','Bleu','Bleu pâle','Orange','Or','Menthe','Lilas','Pêche','Citron','Corail','Doré légendaire'];
 const ficheEl=document.getElementById('fiche'),fbody=document.getElementById('fbody');let fStack=[];
 const hex=c=>'#'+c.toString(16).padStart(6,'0');
-function tnode(k,size,me){const f=S.found[k];const st=f?f.st:0;return '<div class="tnode'+(me?' me':'')+'" data-k="'+k+'"><img src="'+thumb(k,st)+'" style="width:'+size+'px;height:'+size+'px"><div class="tl" style="max-width:'+(size+14)+'px">'+nameOf(k)+'</div>'+(size>=44?'<div class="ts">'+numOf(k)+'</div>':'')+'</div>'}
+function tnode(k,size,me){return '<div class="tnode'+(me?' me':'')+'" data-k="'+k+'"><img src="'+thumbFor(k)+'" style="width:'+size+'px;height:'+size+'px"><div class="tl" style="max-width:'+(size+14)+'px">'+dname(k)+'</div>'+(size>=44?'<div class="ts">'+dnum(k)+'</div>':'')+'</div>'}
 const SZ=[92,64,46,34];
 function treeHTML(k,depth){const f=S.found[k];let h='<div class="tn">'+tnode(k,SZ[depth],depth==0);
 if(f&&f.p){if(depth<3)h+='<div class="kids">'+treeHTML(f.p[0],depth+1)+treeHTML(f.p[1],depth+1)+'</div>';else h+='<div class="orig">…</div>'}else h+='<div class="orig">Plopi d\'origine</div>';return h+'</div>'}
 function gen(k){const f=S.found[k];if(!f||!f.p)return 0;return 1+Math.max(gen(f.p[0]),gen(f.p[1]))}
 function openFiche(k,push){if(push!==false){fStack.push(k)}const f=S.found[k],g=decode(k),r=rarityOf(k);
 const mut=(set,v)=>set.includes(v)?'<span class="mut">✦ mutation</span>':'';
-let h='<div class="fhero"><img src="'+thumb(k,f.st)+'"><div class="nm">'+nameOf(k)+'</div><div class="sub">'+numOf(k)+' · '+STARS(r)+' '+RNAME[r]+' · '+STAGES[f.st]+'</div><div class="sub" style="opacity:.55">'+f.rank+(f.rank==1?'re':'e')+' découverte'+(f.d?' · né le '+new Date(f.d).toLocaleDateString('fr-FR'):'')+' · génération '+(gen(k)+1)+'</div>';
-h+=f.st<2?'<div class="care" style="margin-top:6px"><span class="lv">♥ '+f.love+'/'+LV[f.st]+'</span><div class="gauge"><i style="width:'+(100*f.love/LV[f.st])+'%"></i></div></div>':'<div class="fusok" style="margin-top:4px">✦ Majestueux · peut fusionner</div>';
-h+='</div><div class="sec"><h3>Ses pièces</h3><div class="genes"><span>Tête</span><span>'+HN[g.h]+mut(MUT.h,g.h)+'</span><span>Corps</span><span>'+BN[g.b]+mut(MUT.b,g.b)+'</span><span>Front</span><span>'+INm[g.i]+mut(MUT.i,g.i)+'</span><span>Yeux</span><span>'+ENm[g.e]+mut(MUT.e,g.e)+'</span><span>Couleur</span><span><i class="sw" style="background:'+hex(COLORS[g.c])+'"></i>'+CNm[g.c]+(g.c==11?'<span class="mut" style="color:#FFD95A">✦ légendaire</span>':mut(MUT.c,g.c))+'</span></div></div>';
+const my=mystery(k);let h='<div class="fhero"><img src="'+thumbFor(k)+'"><div class="nm">'+dname(k)+'</div><div class="sub">'+dnum(k)+(my?'':' · '+STARS(r)+' '+RNAME[r])+' · '+(f.egg?'Œuf':STAGES[f.st])+'</div><div class="sub" style="opacity:.55">'+f.rank+(f.rank==1?'re':'e')+' découverte'+(f.d?' · né le '+new Date(f.d).toLocaleDateString('fr-FR'):'')+' · génération '+(gen(k)+1)+'</div>';
+h+=f.egg?'<div class="care" style="margin-top:6px"><span class="lv">Câlins '+f.hatch+'/'+HATCH+'</span><div class="gauge"><i style="width:'+(100*f.hatch/HATCH)+'%"></i></div></div>':f.st<2?'<div class="care" style="margin-top:6px"><span class="lv">♥ '+f.love+'/'+LV[f.st]+'</span><div class="gauge"><i style="width:'+(100*f.love/LV[f.st])+'%"></i></div></div>':'<div class="fusok" style="margin-top:4px">✦ Majestueux · peut fusionner</div>';
+h+='</div><div class="sec"><h3>Ses pièces</h3>'+(my?'<div class="sub" style="opacity:.6;font-size:13px">Surprise ! Fais éclore l\'œuf pour les découvrir.</div></div>':'<div class="genes"><span>Tête</span><span>'+HN[g.h]+mut(MUT.h,g.h)+'</span><span>Corps</span><span>'+BN[g.b]+mut(MUT.b,g.b)+'</span><span>Front</span><span>'+INm[g.i]+mut(MUT.i,g.i)+'</span><span>Yeux</span><span>'+ENm[g.e]+mut(MUT.e,g.e)+'</span><span>Couleur</span><span><i class="sw" style="background:'+hex(COLORS[g.c])+'"></i>'+CNm[g.c]+(g.c==11?'<span class="mut" style="color:#FFD95A">✦ légendaire</span>':mut(MUT.c,g.c))+'</span></div></div>');
 h+='<div class="sec"><h3>Arbre généalogique</h3><div class="tree">'+treeHTML(k,0)+'</div></div>';
 const kids=S.order.filter(x=>S.found[x].p&&S.found[x].p.includes(k));
 h+='<div class="sec"><h3>Ses enfants ('+kids.length+')</h3>'+(kids.length?'<div class="kidsrow">'+kids.map(x=>tnode(x,56)).join('')+'</div>':'<div class="sub" style="opacity:.55;font-size:13px">Pas encore d\'enfant. Quand il sera Majestueux, fais-le fusionner !</div>')+'</div>';
-h+='<div class="fbtns"><button class="fb1" id="fshow">Afficher</button><button class="fb2" id="ffuse" '+(f.st<2?'disabled':'')+'>Fusionner avec…</button></div>';
+h+='<div class="fbtns"><button class="fb1" id="fshow">Afficher</button><button class="fb2" id="ffuse" '+(f.st<2||f.egg||busyWith(k)?'disabled':'')+'>Fusionner avec…</button></div>';
 fbody.innerHTML=h;fbody.scrollTop=0;ficheEl.classList.add('on');
 document.getElementById('fshow').onclick=()=>{closeFiche();closeDex();select(k)};
-document.getElementById('ffuse').onclick=()=>{if(f.st<2)return;closeFiche();openDex(true);dPick=[k];renderDex()}}
+document.getElementById('ffuse').onclick=()=>{if(f.st<2||f.egg||busyWith(k))return;closeFiche();openDex(true);dPick=[k];renderDex()}}
 function closeFiche(){ficheEl.classList.remove('on');fStack=[]}
 fbody.addEventListener('click',e=>{const n=e.target.closest('.tnode');if(!n)return;const k=+n.dataset.k;if(k===fStack[fStack.length-1])return;if(S.found[k])openFiche(k)});
 document.getElementById('fback').onclick=()=>{fStack.pop();if(fStack.length)openFiche(fStack[fStack.length-1],false);else closeFiche()};
 document.getElementById('fclose').onclick=closeFiche;
+let lastZz=0;
 // ================= boucle =================
 function loop(now){requestAnimationFrame(loop);
-if(mode=='merge'&&mg)mergeTick(now);else if(cur)cur.update(now,{touching,fx,fy});
+if(mode=='merge'&&mg)mergeTick(now);else if(cur){cur.update(now,{touching,fx,fy});if(cur.mood==2&&now-lastZz>1300){lastZz=now;puff(0xB8C0D6,new THREE.Vector3(4,cur.top*0.8,2),new THREE.Vector3(0.6,3.2,0),2.4,-0.5,0.5)}}
 for(let i=parts.length-1;i>=0;i--){const p=parts[i],t=(now-p.t0)/1000;if(t>p.life){scene.remove(p.o);parts.splice(i,1);continue}const dt=1/60;p.v.y-=p.grav*dt;p.o.position.addScaledVector(p.v,dt);p.o.rotation.y+=p.spin*dt;p.o.rotation.x+=p.spin*0.5*dt;p.m.opacity=Math.max(0,1-Math.max(0,t-p.life*0.6)/(p.life*0.4))}
 camY+=(tY-camY)*0.08;camD+=(tD-camD)*0.08;cam.position.set(0,camY+camD*0.16,camD);cam.lookAt(0,camY,0);
 tutoTick(now);renderer.render(scene,cam)}
