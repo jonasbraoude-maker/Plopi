@@ -240,13 +240,22 @@ function showSel(){clearStage();mode='view';const f=S.found[S.sel];cur=new P(S.s
 function select(k){S.sel=k;save();showSel();cur.hopT=performance.now();gardenEl.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',+c.dataset.k===k))}
 function breed(a,b){const ga=decode(a),gb=decode(b);const na=special(a),nb=special(b);
 if(na&&nb){const sc=SECRETS.find(s=>(s.a==na.n&&s.b==nb.n)||(s.a==nb.n&&s.b==na.n));if(sc&&Math.random()<0.5)return{k:code(sc.g),secret:sc}}
-let g;for(let t=0;t<10;t++){g={};for(const s of['h','b','i','e','c'])g[s]=Math.random()<0.5?ga[s]:gb[s];const k=code(g);if(k!==a&&k!==b&&!special(k))break}
+const one=()=>{let g;for(let t=0;t<10;t++){g={};for(const s of['h','b','i','e','c'])g[s]=Math.random()<0.5?ga[s]:gb[s];const k=code(g);if(k!==a&&k!==b&&!special(k))break}
 if(Math.random()<0.15||code(g)===a||code(g)===b){const slots=['h','b','i','e','c'];const s=slots[Math.floor(Math.random()*5)];g[s]=MUT[s][Math.floor(Math.random()*MUT[s].length)]}
-if(Math.random()<0.02)g.c=11;let k=code(g);if(special(k)){g.c=6+Math.floor(Math.random()*5);k=code(g)}return{k}}
+if(Math.random()<0.02)g.c=11;let k=code(g);if(special(k)){g.c=6+Math.floor(Math.random()*5);k=code(g)}return k};
+let k=one();for(let t=0;t<30&&S.found[k];t++)k=one();return{k}}
+const FIRE=g=>g.h==3||g.b==3,WATER=g=>g.b==1;
+function incompat(a,b){const ga=decode(a),gb=decode(b);if((FIRE(ga)&&WATER(gb))||(WATER(ga)&&FIRE(gb)))return{t:'eau',msg:'Pschhh ! Le feu et l\'eau ne s\'entendent pas.',sub:'Le feu s\'est éteint… essaie un autre partenaire.'};if(ga.h==4&&gb.h==4)return{t:'roi',msg:'Il ne peut y avoir qu\'un seul roi !',sub:'Deux couronnés refusent de fusionner.'};return null}
 function merge(a,b){if(mode=='merge')return;clearStage();mode='merge';banEl.classList.remove('on');
 const now=performance.now();const A=new P(a,2),B=new P(b,2);A.root.scale.setScalar(0.5);B.root.scale.setScalar(0.5);A.root.position.x=-7;B.root.position.x=7;scene.add(A.root);scene.add(B.root);tY=4;tD=Math.max(8/T,12/(T*cam.aspect));
-mg={t0:now,A,B,C:null,a,b,res:breed(a,b),done:false};infoEl.innerHTML='<div class="nm">'+nameOf(a)+' + '+nameOf(b)+'</div><div class="sub">Fusion royale en cours…</div>'}
-function mergeTick(now){const t=(now-mg.t0)/1000;const{A,B}=mg;
+const fail=incompat(a,b);mg={t0:now,A,B,C:null,a,b,fail,res:fail?null:breed(a,b),done:false};infoEl.innerHTML='<div class="nm">'+nameOf(a)+' + '+nameOf(b)+'</div><div class="sub">Fusion royale en cours…</div>'}
+function failTick(now){const t=(now-mg.t0)/1000;const{A,B}=mg;
+let x;if(t<0.9){const p=t/0.9;x=7-5*p*p}else if(t<1.6){const p=(t-0.9)/0.7;x=2+5*(1-(1-p)*(1-p))}else x=7;
+A.root.position.x=-x;B.root.position.x=x;const hp=t<0.9?Math.abs(Math.sin(t*Math.PI*3.3))*1.6:0;const away=t>0.9;A.update(now,{yaw:away?-1.2:0.7,baseY:hp,hop:0});B.update(now,{yaw:away?1.2:-0.7,baseY:hp,hop:0});
+if(t>0.9&&!mg.burst){mg.burst=true;const cs=mg.fail.t=='eau'?[0xBFC6D6,0xE6EAF2,0x9AA3B8]:[0xFF4D6D,0xFFD95A,0xFF8A2E];for(let i=0;i<30;i++)puff(cs[i%3],new THREE.Vector3(0,5,1),new THREE.Vector3((Math.random()-.5)*10,4+Math.random()*7,(Math.random()-.5)*6),1.8,mg.fail.t=='eau'?-1:14,0.7)}
+if(t>1.7&&!mg.done){mg.done=true;const key=[mg.a,mg.b].sort().join('-');S.fails=S.fails||{};S.fails[key]=1;save();
+banEl.innerHTML='<div class="bn"><div class="nm" style="font-size:19px">'+mg.fail.msg+'</div><div class="nb" style="font-size:12px;opacity:.75">'+mg.fail.sub+'</div><div class="row"><button class="bt bt1" id="ok">D\'accord</button></div></div>';banEl.classList.add('on');document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');mg=null;showSel()}}}
+function mergeTick(now){if(mg.fail)return failTick(now);const t=(now-mg.t0)/1000;const{A,B}=mg;
 if(t<0.9&&A&&B){const p=Math.min(1,t/0.9);const x=7-5*p*p;A.root.position.x=-x;B.root.position.x=x;const hp=Math.abs(Math.sin(t*Math.PI*3.3))*1.6;A.update(now,{yaw:0.7,baseY:hp,hop:0});B.update(now,{yaw:-0.7,baseY:hp,hop:0})}
 else if(!mg.burst){mg.burst=true;scene.remove(A.root);scene.remove(B.root);mg.A=mg.B=null;flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go');
 const cs=[COLORS[decode(mg.a).c],COLORS[decode(mg.b).c],0xFFFFFF,0xFF7FA0];for(let i=0;i<34;i++)puff(cs[i%4],new THREE.Vector3(0,4,1),new THREE.Vector3((Math.random()-.5)*24,8+Math.random()*12,(Math.random()-.5)*10),1.6,18,0.55)}
