@@ -195,7 +195,7 @@ const SECRETS=[
 {a:'Lunio',b:'Doudo',n:'Rêvéa',num:25,g:{h:6,b:2,i:6,e:1,c:7},r:3},
 {a:'Ploufi',b:'Doudo',n:'Pluvie',num:13,g:{h:6,b:1,i:3,e:1,c:3},r:3}];
 const SPECIAL=[...BASES,...NATIVES,...SECRETS];
-const TST=(()=>{try{const q=new URLSearchParams(location.search);if(q.has('test'))localStorage.setItem('plopi_test',q.get('test')==='0'?'':'1');return localStorage.getItem('plopi_test')==='1'}catch(e){return location.search.includes('test')}})();
+const TST=(()=>{const q=new URLSearchParams(location.search);return q.has('test')&&q.get('test')!=='0'})();
 const STAGES=['Bébé','Grand','Majestueux'],LV=[10,20],HATCH=5,MOOD=TST?[5*60e3,10*60e3,15*60e3]:[24*3600e3,36*3600e3,48*3600e3],DECAY=TST?60e3:2*3600e3;
 const code=g=>g.h+NH*(g.b+NBo*(g.i+NI*(g.e+NE*g.c)));
 const decode=k=>{const g={};g.h=k%NH;k=Math.floor(k/NH);g.b=k%NBo;k=Math.floor(k/NBo);g.i=k%NI;k=Math.floor(k/NI);g.e=k%NE;g.c=Math.floor(k/NE);return g};
