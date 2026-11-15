@@ -359,8 +359,8 @@ const setF=(x,y,o)=>{const i=face[x+','+y];if(i!=null)out[i]=Object.assign({},ou
 if(g.b==2&&si>0)for(let x=-3;x<=3;x++)setF(x,my-1,{t:'a',c:0x34406B});
 if(si>0){const dy=si==2?1:0;(IC[g.i]||[]).forEach(([x,y,c,bw])=>setF(x,y+dy,{t:'a',c,bw}))}
 const emb=[];if(g.b==10)out.forEach((v,i)=>{if(v.t=='b'&&((v.x*13+v.y*7+v.z*11)%5+5)%5==0)emb.push(i)});if(g.b==3)out.forEach((v,i)=>{if(v.t=='b'&&v.z<d&&v.y>=1&&v.y<=h-2&&(Math.abs(v.x)==w||Math.abs(v.z)==d)&&((v.x*7+v.y*3+v.z*5)%3==0))emb.push(i)});
-let top=0;out.forEach(v=>top=Math.max(top,v.y+1));
-return VC[key]={out,face,emb,embC:g.b==10?0xFFE58A:0xFF8A2E,top:top+1,g,s}}
+let top=0;out.forEach(v=>top=Math.max(top,v.y+1));const fset=new Set(Object.values(face));const emb2=emb.filter(i=>!fset.has(i)&&out[i].z<d);
+return VC[key]={out,face,emb:emb2,embC:g.b==10?0xFFE58A:0xFF8A2E,top:top+1,g,s}}
 let STYLE='col';
 const gray=c=>{const o=new THREE.Color(c);const l=0.3*o.r+0.59*o.g+0.11*o.b;const v=0.1+0.35*l;return new THREE.Color(v,v,v).getHex()};
 const dark=(c,f)=>new THREE.Color(c).multiplyScalar(f).getHex();
