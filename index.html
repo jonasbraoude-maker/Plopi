@@ -185,7 +185,7 @@ body.fs #song{bottom:max(30px,env(safe-area-inset-bottom))}
 #dprog i{position:absolute;left:0;right:0;bottom:0;background:#ff6b8b}
 #dhand{position:absolute;left:50%;top:60%;width:30px;height:30px;margin-left:-60px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:0 0 0 6px rgba(255,107,139,.5);display:none;animation:dh 1.6s ease-in-out infinite}
 @keyframes dh{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(.8);opacity:1}}
-#dplab{position:absolute;left:50%;top:calc(22% - 30px);margin-left:6px;font-size:10px;line-height:11px;text-align:center;color:#ffc2da;font-weight:800;width:40px}body.fs #dplab{top:calc(24% - 30px);margin-left:12px}
+#privb{position:relative}#privb.nd:after{content:'';position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#ff4d6d;border:2px solid #1b2050}#dplab{position:absolute;left:50%;top:calc(22% - 30px);margin-left:6px;font-size:10px;line-height:11px;text-align:center;color:#ffc2da;font-weight:800;width:40px}body.fs #dplab{top:calc(24% - 30px);margin-left:12px}
 #darr{position:absolute;right:calc(50% + 26px);font-weight:800;font-size:14px;color:#ffc2da;background:rgba(68,51,99,.95);border:1px solid rgba(255,140,185,.35);border-radius:99px;padding:3px 10px;white-space:nowrap;display:none;transform:translateY(-50%);z-index:3}
 #dzone.in{background:rgba(255,140,185,.9);box-shadow:0 0 14px rgba(255,140,185,.9)}
 #dhelp{position:absolute;top:max(10px,env(safe-area-inset-top));left:12px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.14);color:#fff;font:inherit;font-weight:800;font-size:16px;pointer-events:auto;z-index:4}
@@ -564,7 +564,7 @@ document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');exitFS()
 document.getElementById('share').onclick=()=>{track('partage');const txt='J\'ai fait éclore '+nameOf(k)+' '+numOf(k)+' '+'★'.repeat(r)+' sur Plopi ! Et toi, tu as quoi ?';try{navigator.clipboard.writeText(txt).then(()=>toast('Copié ! Colle-le où tu veux'),()=>toast(txt))}catch(e){toast(txt)}}}
 const privov=document.getElementById('privov');
 function privRender(){document.getElementById('pseudov').textContent=S.pseudo||'aucun (anonyme)';const off=statsOff();document.getElementById('privtest').style.display=TESTM&&!TST?'block':'none';document.getElementById('privst').textContent=TESTM?'Appareil de test : rien n\'est envoyé et tes découvertes ne sont pas classées.':off?'Les statistiques sont désactivées sur cet appareil.':'Les statistiques sont activées sur cet appareil.';document.getElementById('privtog').textContent=off?'Réactiver les statistiques':'Désactiver les statistiques'}
-document.getElementById('privb').onclick=()=>{privRender();privov.style.display='flex'};document.getElementById('privclose').onclick=()=>privov.style.display='none';document.getElementById('pseudob').onclick=()=>askPseudo(privRender);document.getElementById('privtest').onclick=()=>{if(!confirm('Cet appareil comptera dans les statistiques et les classements. Réouvrir une adresse avec ?test le remettra en appareil de test. Continuer ?'))return;try{localStorage.removeItem('plopi_test')}catch(e){}location.href=location.pathname};
+document.getElementById('privb').onclick=()=>{if(!S.privSeen){S.privSeen=1;save();document.getElementById('privb').classList.remove('nd')}privRender();privov.style.display='flex'};document.getElementById('privclose').onclick=()=>privov.style.display='none';document.getElementById('pseudob').onclick=()=>askPseudo(privRender);document.getElementById('privtest').onclick=()=>{if(!confirm('Cet appareil comptera dans les statistiques et les classements. Réouvrir une adresse avec ?test le remettra en appareil de test. Continuer ?'))return;try{localStorage.removeItem('plopi_test')}catch(e){}location.href=location.pathname};
 document.getElementById('privtog').onclick=()=>{if(statsOff()){try{localStorage.removeItem('plopi_nostats')}catch(e){}toast('Statistiques réactivées')}else{try{localStorage.setItem('plopi_nostats','1')}catch(e){}fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pid:PID,forget:true})}).catch(()=>{});S.pseudo='';save();toast('Statistiques désactivées et données de cet appareil effacées')}privRender()};
 // ================= missions & œufs sauvages =================
 const MISSIONS=[
@@ -927,7 +927,7 @@ for(let i=parts.length-1;i>=0;i--){const p=parts[i],t=(now-p.t0)/1000;if(t>p.lif
 camY+=(tY-camY)*0.08;camD+=(tD-camD)*0.08;cam.position.set(0,camY+camD*0.16,camD);cam.lookAt(0,camY,0);
 tutoTick(now);renderer.render(scene,cam)}
 if(TST)document.getElementById('tstb').style.display='inline-block';
-resize();renderGarden();showSel();setTimeout(checkMissions,1500);track('open');if(!S.privSeen&&!TESTM){S.privSeen=1;save();setTimeout(()=>toast('Plopi mesure anonymement comment on joue,<br>sans nom ni email. Détails : bouton <b>i</b> en haut.'),5000)}camY=tY;camD=tD;updateTuto();requestAnimationFrame(loop);setTimeout(worldBacklog,4000);setTimeout(setHalf,300);
+resize();renderGarden();showSel();setTimeout(checkMissions,1500);track('open');document.getElementById('privb').classList.toggle('nd',!S.privSeen&&!TESTM);camY=tY;camD=tD;updateTuto();requestAnimationFrame(loop);setTimeout(worldBacklog,4000);setTimeout(setHalf,300);
 </script>
 </body>
 </html>
