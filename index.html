@@ -657,6 +657,7 @@ function danceDemo(){const d=document.getElementById('ddemo');if(dn)document.get
 document.getElementById('ddemo').addEventListener('pointerdown',e=>e.stopPropagation());document.getElementById('dhelp').addEventListener('pointerdown',e=>{e.stopPropagation();if(dn&&!dn.done)danceDemo()});
 document.getElementById('ddgo').onclick=e=>{e.stopPropagation();document.getElementById('ddemo').classList.remove('on');if(dn){dn.demo=false;if(dn.pz){const d=performance.now()-dn.pz;dn.t0+=d;if(dn.nextBeat){dn.nextBeat+=d;dn.beatS+=d}dn.pz=0}}holding=false};
 const TIERS=[['🟢','est facile à séduire'],['🟡','est un peu timide'],['🟠','est exigeant'],['🔴','est très difficile : même séduit, il peut hésiter…']];
+function danceSetTier(t){const D=dn;if(!D)return;const N=[3.5,5.5,7.5,9.5][t];D.tier=t;D.gP=0.7/N;D.gG=D.gP*0.6;D.loss=D.gP*[0.5,0.6,0.8,1][t];D.q=[1,0.66,0.33,0][t];D.wP=70+60*D.q;D.wG=150+110*D.q;danceTierUI()}
 function danceTierUI(){if(!dn)return;const T=TIERS[dn.tier];document.getElementById('dil').textContent=T[0]+' '+nameOf(dn.b)+' '+T[1]}
 function danceAgain(a,b,again){banEl.classList.remove('on');dn=null;mode='view';if(again){showSel();setTimeout(()=>tryMerge(a,b),50)}else{exitFS();showSel()}}
 function danceJudge(t){const j=document.getElementById('djud');j.textContent=t;j.classList.remove('on');void j.offsetWidth;j.classList.add('on');clearTimeout(j._t);j._t=setTimeout(()=>j.classList.remove('on'),550)}
@@ -991,6 +992,10 @@ const CATL=[
 ['foudre','« 💞 Coup de foudre ! »','Rare, toutes les 3 à 6 h','ok',()=>{S.crush={a:CK.m3,b:CK.m4,t0:Date.now(),until:Date.now()+CRD};save();renderGarden();crushBan()}],
 ['carte','Carte « 🔒 Plopi mystère »','Toucher une silhouette du jardin','ok',()=>{openJardin(false);setTimeout(()=>jMis(MISSIONS[3]),600)}],
 ['pseudoq','Choix du pseudo','Classement mondial · ici rien n\'est envoyé','ok',()=>{const v=prompt('Ton pseudo (2 à 16 lettres ou chiffres).\nLaisse vide pour rester anonyme.','');if(v!==null)toast(v?'Pseudo enregistré : '+escH(v):'Tu restes anonyme')}],
+['d0','Danse 🟢 facile','3 ou 4 pas','ok',()=>{select(CK.pet);tryMerge(CK.pet,CK.plo);setTimeout(()=>danceSetTier(0),100)}],
+['d1','Danse 🟡 timide','5 ou 6 pas','ok',()=>{select(CK.pet);tryMerge(CK.pet,CK.plo);setTimeout(()=>danceSetTier(1),100)}],
+['d2','Danse 🟠 exigeant','7 ou 8 pas, accélère','ok',()=>{select(CK.pet);tryMerge(CK.pet,CK.plo);setTimeout(()=>danceSetTier(2),100)}],
+['d3','Danse 🔴 très difficile','9 ou 10 pas, irrégulier','ok',()=>{select(CK.pet);tryMerge(CK.pet,CK.plo);setTimeout(()=>danceSetTier(3),100)}],
 ['badge','Badge de difficulté 🟢🟡🟠🔴','Au début de la danse · ici 🔴','ok',()=>{select(CK.pet);tryMerge(CK.pet,CK.plo);setTimeout(()=>{if(dn){dn.tier=3;danceTierUI()}},400)}],
 ['refus','« Ploufi a hésité… et a dit non » (rare)','🟠🔴 seulement, après une danse réussie','ok',()=>{select(CK.pet);tryMerge(CK.pet,CK.plo);setTimeout(()=>{if(dn){dn.tier=3;danceTierUI();dn.forceRefuse=true;dn.allP=false;dn.np=5;dn.phase='play';dn.int=1;dn.beatS=performance.now()-2000;dn.nextBeat=performance.now()-1000;dn.judged=true}},600)}],
 ['ratee','« … n\'est pas séduit » (danse ratée)','Fin de danse ratée · passerait en Info','move',()=>{select(CK.pet);tryMerge(CK.pet,CK.plo);setTimeout(()=>{if(dn){dn.phase='play';dn.free=0;dn.int=0.01;dn.beatS=performance.now()-2000;dn.nextBeat=performance.now()-1000;dn.judged=false}},600)}]]],
