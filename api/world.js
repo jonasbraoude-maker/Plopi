@@ -6,6 +6,18 @@ const okPid = (p) => /^[a-z0-9]{8,40}$/.test(p || '');
 const okK = (k) => Number.isInteger(k) && k >= 1 && k <= 500000;
 const MIN_TS = Date.UTC(2026, 0, 1);
 
+// Clé d'unicité : sans majuscules ni accents
+const normPs = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+// Raison du refus, ou null si le pseudo est valable
+function whyBad(s) {
+  s = String(s || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+  if (!s) return null;
+  if (s.length < 2) return 'court';
+  if (s.length > 16) return 'long';
+  const badC = [...s].find((c) => !/[\p{L}\p{N} _.\-]/u.test(c));
+  if (badC) return 'car:' + badC;
+  return cleanPseudo(s) === null ? 'mot' : null;
+}
 function cleanPseudo(s) {
   s = String(s || '').normalize('NFC').replace(/\s+/g, ' ').trim();
   if (!s) return '';
@@ -18,6 +30,19 @@ function cleanPseudo(s) {
 
 module.exports = async (req, res) => {
   try {
+    if (req.method === 'GET' && 'check' in req.query) {
+      // Vérification en direct d'un pseudo (disponible / pris / refusé)
+      const raw = String(req.query.check || '');
+      const pid = String(req.query.pid || '');
+      res.setHeader('Cache-Control', 'no-store');
+      const why = whyBad(raw);
+      if (why) return res.status(200).json({ ok: false, why });
+      const ps = cleanPseudo(raw);
+      if (!ps) return res.status(200).json({ ok: false, why: 'vide' });
+      const [owner] = await pipe([['HGET', 'psname', normPs(ps)]]);
+      if (owner && owner !== pid) return res.status(200).json({ ok: false, why: 'pris' });
+      return res.status(200).json({ ok: true, ps });
+    }
     if (req.method === 'GET') {
       const k = parseInt(req.query.k, 10);
       const pid = String(req.query.pid || '');
@@ -47,8 +72,16 @@ module.exports = async (req, res) => {
 
     if ('pseudo' in b) {
       const ps = cleanPseudo(b.pseudo);
-      if (ps === null) return res.status(422).json({ error: 'pseudo' });
-      await pipe([ps ? ['HSET', 'pseudo', pid, ps] : ['HDEL', 'pseudo', pid]]);
+      if (ps === null) return res.status(422).json({ error: 'pseudo', why: whyBad(b.pseudo) });
+      const [old] = await pipe([['HGET', 'pseudo', pid]]);
+      if (ps) {
+        const [set, owner] = await pipe([['HSETNX', 'psname', normPs(ps), pid], ['HGET', 'psname', normPs(ps)]]);
+        if (!set && owner !== pid) return res.status(409).json({ error: 'pris' });
+      }
+      const cmds = [];
+      if (old && normPs(old) !== normPs(ps)) cmds.push(['HDEL', 'psname', normPs(old)]);
+      cmds.push(ps ? ['HSET', 'pseudo', pid, ps] : ['HDEL', 'pseudo', pid]);
+      await pipe(cmds);
       return res.status(200).json({ pseudo: ps });
     }
 

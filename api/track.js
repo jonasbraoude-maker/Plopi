@@ -22,6 +22,8 @@ module.exports = async (req, res) => {
       (days || []).forEach((d) => { cmds.push(['SREM', 'active:' + d, pid]); cmds.push(['HDEL', 'mins:' + d, pid]); });
       const [ks] = await pipe([['SMEMBERS', 'pk:' + pid]]);
       (ks || []).forEach((k) => { cmds.push(['ZREM', 'disc:' + k, pid]); cmds.push(['SREM', 'own:' + k, pid]); });
+      const [ops] = await pipe([['HGET', 'pseudo', pid]]);
+      if (ops) cmds.push(['HDEL', 'psname', String(ops).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')]);
       cmds.push(['DEL', 'pk:' + pid], ['HDEL', 'pseudo', pid]);
       await pipe(cmds);
       return res.status(204).end();
