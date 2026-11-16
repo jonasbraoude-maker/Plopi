@@ -456,8 +456,9 @@ const r2=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffe
 const THUMB={};
 function thumb(k,si,egg,md){const key=k+'_'+(egg?'e':si)+(md==3?'h':'')+STYLE;if(THUMB[key])return THUMB[key];const p=egg?new Egg(k):new P(k,si,md||0);if(md>=2){p.paint('closed',false);const zm=new THREE.MeshBasicMaterial({color:0xDDEEFF});const z1=zGroup(zm,1.3),z2=zGroup(zm,0.9);z1.rotation.y=z2.rotation.y=0.38;z1.position.set(p.s.w*0.4,p.top+0.9,1);z2.position.set(p.s.w*0.4+2.2,p.top+2.6,1);p.root.add(z1,z2)}p.root.rotation.y=-0.38;sc2.add(p.root);const t=(egg?12:Math.max(p.top,17))*(md>=2?1.15:1);c2.position.set(0,t*0.62,t*1.95+4);c2.lookAt(0,t*0.43,0);r2.render(sc2,c2);sc2.remove(p.root);return THUMB[key]=r2.domElement.toDataURL()}
 // ================= état =================
+const CATQ=new URLSearchParams(location.search);const CAT=CATQ.has('catalogue');const SKEY=CAT?'plopi-cat-v1':'plopi-hyb-v3';if(CAT){try{localStorage.removeItem(SKEY)}catch(e){}}
 let S={found:{},order:[],secrets:{},sel:null,tuto:0,style:'col'};
-try{const raw=localStorage.getItem('plopi-hyb-v3');if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
+try{const raw=localStorage.getItem(SKEY);if(raw)S=Object.assign(S,JSON.parse(raw))}catch(e){}
 if(S.order.length&&!S.ver){const od=k=>{const g={};g.h=k%7;k=Math.floor(k/7);g.b=k%6;k=Math.floor(k/6);g.i=k%8;k=Math.floor(k/8);g.e=k%4;g.c=Math.floor(k/4);return g};const mk=k=>code(od(+k));const mp=o=>{const r={};for(const key in o)r[key.split('-').map(mk).sort().join('-')]=o[key];return r};
 const nf={};for(const k in S.found){const f=S.found[k];if(f.p)f.p=f.p.map(mk);nf[mk(k)]=f}S.found=nf;S.order=S.order.map(mk);if(S.sel!=null)S.sel=mk(S.sel);['pairs','sulk','fails'].forEach(x=>{if(S[x])S[x]=mp(S[x])})}
 S.ver=2;if(S.wildLast==null)S.wildLast=Date.now();S.unl=S.unl||{};
@@ -471,12 +472,12 @@ let SRC='direct';try{const q=QS.get('src');if(q&&/^[\w-]{1,24}$/.test(q)){localS
 const UA=navigator.userAgent;const PLAT=/iPhone|iPad|iPod/.test(UA)?'ios':/Android/.test(UA)?'android':/Mobi/.test(UA)?'autre':'desktop';
 const APP=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
 const statsOff=()=>{try{return localStorage.getItem('plopi_nostats')==='1'}catch(e){return false}};
-function track(evt,data){if(TESTM||statsOff())return;const body=JSON.stringify(Object.assign({pid:PID,evt,src:SRC,plat:PLAT,app:APP},data||{}));
+function track(evt,data){if(CAT||TESTM||statsOff())return;const body=JSON.stringify(Object.assign({pid:PID,evt,src:SRC,plat:PLAT,app:APP},data||{}));
 try{if(navigator.sendBeacon&&navigator.sendBeacon('/api/track',new Blob([body],{type:'application/json'})))return}catch(e){}
 try{fetch('/api/track',{method:'POST',headers:{'Content-Type':'application/json'},body,keepalive:true}).catch(()=>{})}catch(e){}}
 setInterval(()=>{if(document.visibilityState==='visible')track('ping')},60000);
-function save(){try{localStorage.setItem('plopi-hyb-v3',JSON.stringify(S))}catch(e){}}
-const worldOff=()=>TESTM||statsOff();const escH=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function save(){try{localStorage.setItem(SKEY,JSON.stringify(S))}catch(e){}}
+const worldOff=()=>CAT||TESTM||statsOff();const escH=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function worldSend(items){if(worldOff()||!items.length)return;try{fetch('/api/world',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pid:PID,items}),keepalive:true}).then(r=>{if(r.ok){S.wSent=S.wSent||{};items.forEach(it=>S.wSent[it.k]=1);save()}}).catch(()=>{})}catch(e){}}
 function worldBacklog(){const ks=S.order.filter(k=>S.found[k].h&&!(S.wSent||{})[k]);for(let i=0;i<ks.length;i+=150)worldSend(ks.slice(i,i+150).map(k=>({k,ts:S.found[k].d||Date.now()})))}
 function askPseudo(cb){const v=prompt('Ton pseudo (2 à 16 lettres ou chiffres).\nLaisse vide pour rester anonyme.',S.pseudo||'');if(v===null)return;fetch('/api/world',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pid:PID,pseudo:v})}).then(r=>r.status==422?Promise.reject('bad'):r.json()).then(d=>{S.pseudo=d.pseudo||'';save();toast(S.pseudo?'Pseudo enregistré : '+escH(S.pseudo):'Tu restes anonyme');cb&&cb()}).catch(e=>alert(e==='bad'?'Ce pseudo n\'est pas accepté. Essaie un autre (2 à 16 lettres ou chiffres).':'Pas de connexion pour l\'instant.'))}
@@ -490,6 +491,7 @@ e2.innerHTML=h;const sb=document.getElementById('wsign');if(sb)sb.onclick=()=>as
 function addFound(k,parents){if(S.found[k]){S.found[k].n++;return false}S.order.push(k);S.found[k]={rank:S.order.length,n:1,p:parents||null,st:0,love:0,fed:0,d:Date.now(),egg:true,hatch:0,h:false,last:Date.now(),lost:0};return true}
 const needH=f=>f.egg&&f.h?[1,2,3][f.st]:(f.need||HATCH);
 if(!S.order.length){BASES.forEach(b=>{const k=code(b.g);addFound(k);const f=S.found[k];if(b.n==='Lunio'){f.need=3}else{f.h=true;f.egg=false}});S.sel=code(BASES[4].g);save()}
+if(CAT)catSetup();
 const SLP=TST?60e3:45*60e3,NAP=TST?[10e3,30e3]:[5*60e3,15*60e3];const RYT=['Marmotte 😴','Normal','Pile électrique ⚡'],RYTI=TST?[90e3,120e3,180e3]:[60*60e3,90*60e3,150*60e3],WARN=TST?20e3:3*60e3;const rytOf=k=>(Math.imul(k+11,2654435761)>>>0)%3;
 for(const k in S.found){const f=S.found[k];if(f.last==null)f.last=Date.now();if(f.fedL==null)f.fedL=f.last;if(f.egg&&f.h&&!f.slU)f.slU=Date.now()+SLP;if(f.egg&&f.h&&!f.slS)f.slS=Date.now();if(f.h==null)f.h=true;if(f.egg==null)f.egg=false;if(f.hatch==null)f.hatch=0;if(f.lost==null)f.lost=0}
 const isSad=f=>Date.now()-f.last>=MOOD[0],isHung=f=>Date.now()-(f.fedL||f.last)>=MOOD[0];
@@ -787,7 +789,7 @@ const JNEW=['','des fleurs et deux arbres','des rochers','des champignons géant
 const jSig=()=>S.order.length+':'+S.order.filter(k=>S.found[k].egg&&!S.found[k].h).length;
 const JPOS={};
 const jTier=()=>Math.min(6,Math.floor(S.order.filter(k=>S.found[k].h).length/10));
-function jCheckTier(){const t=jTier();if(S.jt==null){S.jt=t;save();return}if(t>S.jt){S.jt=t;S.jNew=t;save();setTimeout(()=>toast('🌱 Ton jardin s\'agrandit !<br>Nouveau : '+JNEW[t]),4500)}}
+function jCheckTier(){const t=jTier();if(S.jt==null){S.jt=t;save();return}if(t>Math.max(S.jt,S.jtT||0)){S.jtT=t;save();setTimeout(()=>toast('🌱 Ton jardin s\'agrandit !<br>Nouveau : '+JNEW[t]),4500)}}
 function openJardin(mini){if(J)return;{const jm=document.getElementById('jmis');if(jm)jm.style.display='none'}if(!mini)track('jardin');{const ho=mini?document.getElementById('mini'):jarEl;ho.insertBefore(jarHost,ho.firstChild)}const {pl,eggs}=jPick();const n=pl.length;if(S.jt==null)S.jt=jTier();const T=jTier();const R=Math.max(44+T*16,Math.sqrt(n)*17+14);const C=5;const celT=(!mini&&T>S.jt)?S.jt:null;const Rold=celT!=null?Math.min(R-16,Math.max(44+celT*16,Math.sqrt(n)*17+14)):1e9;const GR=[],GD=[];
 const sc=new THREE.Scene();sc.add(new THREE.AmbientLight(0xffffff,0.62));const l1=new THREE.DirectionalLight(0xffffff,0.75);l1.position.set(30,60,40);sc.add(l1);const l2=new THREE.DirectionalLight(0xbfc6ff,0.3);l2.position.set(-30,-10,-30);sc.add(l2);
 const rd=new THREE.WebGLRenderer({antialias:!mini,alpha:true});rd.setPixelRatio(mini?1:Math.min(devicePixelRatio,2));jarHost.appendChild(rd.domElement);
@@ -926,8 +928,77 @@ if(mode=='dance'&&dn)danceTick(now);else if(mode=='merge'&&mg)mergeTick(now);els
 for(let i=parts.length-1;i>=0;i--){const p=parts[i],t=(now-p.t0)/1000;if(t>p.life){scene.remove(p.o);parts.splice(i,1);continue}const dt=1/60;p.v.y-=p.grav*dt;p.o.position.addScaledVector(p.v,dt);p.o.rotation.y+=p.spin*dt;p.o.rotation.x+=p.spin*0.5*dt;p.m.opacity=Math.max(0,1-Math.max(0,t-p.life*0.6)/(p.life*0.4))}
 camY+=(tY-camY)*0.08;camD+=(tD-camD)*0.08;cam.position.set(0,camY+camD*0.16,camD);cam.lookAt(0,camY,0);
 tutoTick(now);renderer.render(scene,cam)}
+function catSetup(){const B=n=>code(BASES.find(b=>b.n===n).g);const mk=(g,st,par,o)=>{const k=code(g);addFound(k,par||null);const f=S.found[k];Object.assign(f,{egg:false,h:true,st,love:0,fed:0,fl:10,last:Date.now()},o||{});return k};
+const pet=B('Pétalou'),plo=B('Ploufi'),dou=B('Doudo'),fla=B('Flamichou'),lun=B('Lunio');
+[pet,plo].forEach(k=>Object.assign(S.found[k],{st:2,fl:10}));
+const c1=mk({h:2,b:1,i:3,e:0,c:2},1,[pet,plo]),c2=mk({h:0,b:0,i:2,e:1,c:1},1,[pet,plo]);
+const m3=mk({h:5,b:2,i:1,e:0,c:4},2,null),m4=mk({h:3,b:1,i:4,e:2,c:3},2,null),m5=mk({h:4,b:3,i:5,e:1,c:5},2,null),m6=mk({h:1,b:2,i:0,e:2,c:0},2,null);
+const g1=mk({h:2,b:3,i:3,e:0,c:5},0,[c1,m6]);
+const e1=code({h:6,b:1,i:2,e:1,c:1});addFound(e1,[m5,m6]);
+S.tuto=2;S.jHelp=1;S.jWel=1;S.danceWins=3;S.danced=true;S.duoAsk=1;S.privSeen=1;S.crushNext=Date.now()+864e5;S.hatched=0;S.sel=pet;S.dragTip=1;
+window.CK={pet,plo,dou,fla,lun,c1,c2,m3,m4,m5,m6,g1,e1};save()}
+const CATL=[
+['g','Guide · bulle blanche en haut',[
+['oeuf','« Touche l\'œuf pour le faire éclore ♥ »','Première ouverture','ok',()=>{S.tuto=0;select(CK.lun);updateTuto()}],
+['calin','« Touche ton Plopi pour lui faire un câlin ♥ »','Après la 1re éclosion · aujourd\'hui jamais vu','fix',()=>{S.tuto=0;select(CK.dou);updateTuto()}],
+['dix','« À 10 ♥, il grandit ! »','Après le 1er câlin','new',null],
+['deuxmaj','« Fais grandir 2 Plopis jusqu\'à Majestueux »','En attendant','ok',()=>{bubEl.textContent='Fais grandir 2 Plopis jusqu\'à Majestueux';bubEl.style.display='block'}],
+['demo','Démo de la danse (3 étapes)','Avant les 3 premières danses','ok',()=>{S.danceWins=0;select(CK.pet);tryMerge(CK.pet,CK.plo)}],
+['indices','« maintiens ↑ » / « relâche ↓ »','Pendant la danse · maintiens le doigt pour voir','ok',()=>{select(CK.pet);tryMerge(CK.pet,CK.plo)}],
+['astuce','« Tu peux aussi glisser un Majestueux sur un autre »','Après la 1re danse · aujourd\'hui message rose','move',()=>toast('Astuce : tu peux aussi <b>glisser un Majestueux sur un autre</b>,<br>dans les cartes ou le jardin 💞',true)],
+['encore','« Touche encore une fois pour le câliner »','Jardin, si on touche une seule fois','new',null],
+['lache','« Lâche-le bien sur un Majestueux »','Jardin, glisser raté · aujourd\'hui carte « Compris »','move',()=>{openJardin(false);setTimeout(()=>{document.getElementById('jtip').style.display='flex'},500)}],
+['point','Point blanc + « Maintiens un Majestueux, puis glisse-le »','2 Majestueux','del',()=>{S.tuto=1;updateTuto()}],
+['gestes','« 1 doigt : tourner · 2 doigts : déplacer… »','1er jardin','del',()=>{openJardin(false);setTimeout(()=>jToast('1 doigt : tourner · 2 doigts : déplacer, zoomer<br>Appui long sur un Plopi : le glisser pour fusionner'),500)}]]],
+['i','Info · message qui disparaît seul',[
+['dort','« Chut… Doudo dort, réveil dans… »','Câlin sur un Plopi endormi','ok',()=>{sleepNow(CK.dou,10*60e3);prevMood[CK.dou]=3;select(CK.dou);setTimeout(()=>giveLove(CK.dou,1),400)}],
+['content','« Flamichou est content ♥, prochain câlin dans… »','Plus de câlin qui compte','ok',()=>{const f=S.found[CK.fla];f.hugE=Date.now();f.fed=Date.now();window._cdT=0;select(CK.fla);setTimeout(()=>giveLove(CK.fla,1),400)}],
+['calme','« Tout le monde est câliné 💗 »','Dernier câlin donné','ok',()=>{S.order.forEach(k=>{const f=S.found[k];f.hugE=Date.now();f.fed=Date.now()});calmWas=false;calmTick()}],
+['grandi','« Doudo a grandi ! Il est maintenant Grand »','Évolution (+ animation)','ok',()=>{select(CK.dou);setTimeout(()=>giveLove(CK.dou,LV[0]),400)}],
+['lent','« Tes Plopis grandissent un peu moins vite »','Palier de difficulté','ok',()=>toast('Tes Plopis grandissent un peu moins vite maintenant :<br>reviens les câliner plus tard ♥')],
+['sieste','« Doudo fait sa petite sieste 😴 »','Sieste d\'un Bébé','ok',()=>toast(nameOf(CK.dou)+' fait sa petite sieste 😴<br>Réveil dans '+fmtD(NAP[0]))],
+['fatigue','« Pétalou est fatigué, il dort… »','Majestueux qui s\'endort','ok',()=>toast(nameOf(CK.pet)+' est fatigué, il dort… Zzz<br>Il se réveillera tout seul')],
+['reveil','« Doudo s\'est réveillé tout seul ☀️ »','Réveil','ok',()=>toast(nameOf(CK.dou)+' s\'est réveillé tout seul,<br>en pleine forme ☀️')],
+['debout','« Debout ! Doudo se réveille »','Réveil (autre cas)','ok',()=>toast('Debout ! '+nameOf(CK.dou)+' se réveille,<br>toujours Bébé ♥')],
+['dodo','« Pétalou et Ploufi sont fatigués après la danse… »','Après une union','ok',()=>toast(nameOf(CK.pet)+' et '+nameOf(CK.plo)+' sont fatigués après la danse… dodo 🌙')],
+['boudent','« Ils boudent encore, réessaie dans… »','Union juste après un échec','ok',()=>{S.sulk={};S.sulk[[CK.pet,CK.plo].sort().join('-')]=Date.now();tryMerge(CK.pet,CK.plo)}],
+['couve','« … couve son œuf »','Union avec un parent qui couve','ok',()=>tryMerge(CK.m5,CK.pet)],
+['seulmaj','« Seul un Plopi Majestueux peut fusionner »','Union avec un Bébé','ok',()=>tryMerge(CK.dou,CK.pet)],
+['aussimaj','« … doit être Majestueux aussi »','Union vers un Bébé','ok',()=>tryMerge(CK.pet,CK.dou)],
+['oeuffus','« Un œuf ne peut pas fusionner »','Union avec un œuf','ok',()=>tryMerge(CK.lun,CK.pet)],
+['dortfus','« … dort, il est fatigué »','Union avec un dormeur','ok',()=>{sleepNow(CK.m4,10*60e3);prevMood[CK.m4]=3;tryMerge(CK.m4,CK.pet)}],
+['autre','« Lâche-le sur un autre Plopi »','Carte lâchée dans le vide','ok',()=>toast('Lâche-le sur un autre Plopi')],
+['plustard','« Plus tard : touche un Majestueux puis 💞 Unir avec… »','« Plus tard » sur la bannière','ok',()=>toast('Plus tard : touche un Majestueux puis <b>💞 Unir avec…</b>',true)],
+['mission','« Mission accomplie : un œuf de nouveau natif… »','Mission réussie','ok',()=>unlockNative('Brizou','Mission accomplie : Fais éclore 3 œufs mystère',0)],
+['sauvage','« Œuf sauvage : +3 ♥ pour tous »','Œuf sauvage touché','ok',()=>toast('Œuf sauvage : +3 ♥ et bonne humeur pour tous tes Plopis !<br><small>Il paraît que certains œufs n\'apparaissent que la nuit…</small>')],
+['reunion','« Réunion de famille chez Pétalou 💗 »','Jardin (+ animation)','ok',()=>{openJardin(false);setTimeout(()=>{if(J)J.reuNext=0},300)}],
+['pseudo','« Pseudo enregistré »','Réglages','ok',()=>toast('Pseudo enregistré : Jonas')],
+['stats','« Statistiques désactivées… »','Réglages','ok',()=>toast('Statistiques désactivées et données de cet appareil effacées')],
+['copie','« Copié ! »','Partage','ok',()=>toast('Copié ! Colle-le où tu veux')],
+['ancien','« 🌱 Ton jardin s\'agrandit ! » (ancien message)','Éclosion qui fait passer un palier','del',()=>toast('🌱 Ton jardin s\'agrandit !<br>Nouveau : '+JNEW[2])]]],
+['q','Question · bannière avec boutons',[
+['duo','« 👑👑 Deux Majestueux ! »','2 Majestueux, une seule fois','ok',()=>{S.duoAsk=0;S.danceWins=0;duoTick()}],
+['foudre','« 💞 Coup de foudre ! »','Rare, toutes les 3 à 6 h','ok',()=>{S.crush={a:CK.m3,b:CK.m4,t0:Date.now(),until:Date.now()+CRD};save();renderGarden();crushBan()}],
+['carte','Carte « 🔒 Plopi mystère »','Toucher une silhouette du jardin','ok',()=>{openJardin(false);setTimeout(()=>jMis(MISSIONS[3]),600)}],
+['pseudoq','Choix du pseudo','Classement mondial · ici rien n\'est envoyé','ok',()=>{const v=prompt('Ton pseudo (2 à 16 lettres ou chiffres).\nLaisse vide pour rester anonyme.','');if(v!==null)toast(v?'Pseudo enregistré : '+escH(v):'Tu restes anonyme')}],
+['ratee','« Ils boudent… » (danse ratée)','Fin de danse ratée · passerait en Info','move',()=>{select(CK.pet);tryMerge(CK.pet,CK.plo);setTimeout(()=>{if(dn){dn.started=true;dn.t0=performance.now();dn.grace=0;dn.prog=0.0001}},600)}]]],
+['f','Fête · annonce et animation',[
+['eclos','Éclosion « C\'est … ! » (traits rares)','Un œuf mystère éclot','ok',()=>{select(CK.e1);setTimeout(()=>giveLove(CK.e1,HATCH),500)}],
+['natif','Éclosion d\'un natif « C\'est Lunio ! »','L\'œuf de départ éclot','ok',()=>{select(CK.lun);setTimeout(()=>giveLove(CK.lun,5),500)}],
+['mystere','« Un œuf mystère ! »','Danse réussie','ok',()=>{select(CK.pet);tryMerge(CK.pet,CK.plo);setTimeout(()=>{if(dn){dn.started=true;dn.t0=performance.now();dn.prog=0.995}},600)}],
+['evol','« … a grandi ! » (animation)','Évolution','ok',()=>{select(CK.dou);setTimeout(()=>giveLove(CK.dou,LV[0]),400)}],
+['bienvenue','« Bienvenue au Jardin de Mamalune »','1er jardin','ok',()=>{S.jWel=0;S.jHelp=1;S.jHelp=0;openJardin(false)}],
+['agrandit','« Le jardin s\'agrandit ! »','Palier de 10 Plopis','ok',()=>{S.jt=Math.max(0,jTier()-1);openJardin(false)}],
+['deblocage','« Brizou est débloqué ! »','Mission réussie, au jardin','ok',()=>{S.jLocked=MISSIONS.filter(m=>!S.found[natK(m.n)]).map(m=>m.n);unlockNative('Brizou','x',0);toastEl.style.opacity=0;setTimeout(()=>openJardin(false),300)}],
+['foudrej','Coup de foudre dans le jardin','Les deux se retrouvent à l\'écart','ok',()=>{S.crush={a:CK.m3,b:CK.m4,t0:Date.now(),until:Date.now()+CRD};save();openJardin(false)}],
+['reunionj','Réunion de famille (animation)','Jardin','ok',()=>{openJardin(false);setTimeout(()=>{if(J)J.reuNext=0},300)}]]]];
+const CATT={ok:['Existe','#E1F5EE','#085041'],fix:['À réparer','#FAEEDA','#633806'],new:['Nouveau · à venir','#EEEDFE','#3C3489'],move:['À déplacer','#FAEEDA','#633806'],del:['À supprimer','#FCEBEB','#791F1F']};
+function catBoot(){const id=CATQ.get('catalogue');MISSIONS.forEach(m=>{if(m.ok&&m.ok()){const k=natK(m.n);if(!S.found[k]){addFound(k);S.found[k].nat=true;S.found[k].need=3}}});save();renderGarden();const st=document.createElement('style');st.textContent='#catov{position:fixed;inset:0;z-index:90;background:#151a40;color:#fff;overflow:auto;padding:max(14px,env(safe-area-inset-top)) 14px 40px;font-size:14px}#catov h2{font-size:20px;margin:4px 0 2px}#catov h3{font-size:15px;margin:18px 0 6px;color:#ffc2da}#catov .cr{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.08)}#catov .cl{flex:1;line-height:1.3}#catov .cl small{display:block;opacity:.6;font-size:12px}#catov .ct{display:inline-block;font-size:11px;padding:1px 7px;border-radius:99px;margin-top:3px}#catov a.cg{flex:none;background:#ff8cb9;color:#1b2050;font-weight:800;text-decoration:none;padding:6px 12px;border-radius:99px;font-size:13px}#catov .cg.off{background:rgba(255,255,255,.1);color:rgba(255,255,255,.4)}#catb{position:fixed;left:12px;bottom:max(12px,env(safe-area-inset-bottom));z-index:95;background:#ff8cb9;color:#1b2050;font-weight:800;text-decoration:none;padding:8px 14px;border-radius:99px;font-size:14px;box-shadow:0 4px 14px rgba(0,0,0,.35)}';document.head.appendChild(st);
+if(id){const it=CATL.flatMap(g=>g[2]).find(x=>x[0]===id);const b=document.createElement('a');b.id='catb';b.href='?catalogue';b.textContent='↩ Liste';document.body.appendChild(b);if(it&&it[4])setTimeout(()=>{try{it[4]()}catch(e){toast('Oups : '+e.message)}},1300);return}
+let h='<h2>Catalogue des messages</h2><div style="opacity:.7;font-size:13px">Partie de démonstration séparée · ta vraie partie n\'est pas touchée · rien n\'est envoyé</div>';CATL.forEach(([g,t,L])=>{h+='<h3>'+t+'</h3>';L.forEach(([id,lab,when,tg,fn])=>{const T=CATT[tg];h+='<div class="cr"><div class="cl">'+lab+'<small>'+when+'</small><span class="ct" style="background:'+T[1]+';color:'+T[2]+'">'+T[0]+'</span></div>'+(fn?'<a class="cg" href="?catalogue='+id+'">▶ Voir</a>':'<span class="cg off">à venir</span>')+'</div>'})});const o=document.createElement('div');o.id='catov';o.innerHTML=h;document.body.appendChild(o)}
+
 if(TST)document.getElementById('tstb').style.display='inline-block';
-resize();renderGarden();showSel();setTimeout(checkMissions,1500);track('open');document.getElementById('privb').classList.toggle('nd',!S.privSeen&&!TESTM);camY=tY;camD=tD;updateTuto();requestAnimationFrame(loop);setTimeout(worldBacklog,4000);setTimeout(setHalf,300);
+resize();renderGarden();showSel();setTimeout(checkMissions,1500);track('open');document.getElementById('privb').classList.toggle('nd',!S.privSeen&&!TESTM);camY=tY;camD=tD;updateTuto();requestAnimationFrame(loop);setTimeout(worldBacklog,4000);setTimeout(setHalf,300);if(CAT)catBoot();
 </script>
 </body>
 </html>
