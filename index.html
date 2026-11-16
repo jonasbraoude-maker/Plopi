@@ -765,7 +765,7 @@ if(t>0.9&&!mg.burst){mg.burst=true;const cs=mg.fail.t=='eau'?[0xBFC6D6,0xE6EAF2,
 if(t>1.7&&!mg.done){mg.done=true;const key=[mg.a,mg.b].sort().join('-');S.fails=S.fails||{};S.fails[key]=1;save();
 banEl.innerHTML='<div class="bn"><div class="nm" style="font-size:19px">'+mg.fail.msg+'</div><div class="nb" style="font-size:12px;opacity:.75">'+mg.fail.sub+'</div><div class="row"><button class="bt bt1" id="ok">D\'accord</button></div></div>';banEl.classList.add('on');document.getElementById('ok').onclick=()=>{banEl.classList.remove('on');showSel()}}}
 function mergeTick(now){if(mg.fail)return failTick(now);const t=(now-mg.t0)/1000;const{A,B}=mg;
-if(t<0.9&&A&&B){const p=Math.min(1,t/0.9);const x0=mg.x0||7;const x=x0-(x0-2)*p*p;A.root.position.x=-x;B.root.position.x=x;const hp=Math.abs(Math.sin(t*Math.PI*3.3))*1.6;A.update(now,{yaw:0.7,baseY:hp,hop:0});B.update(now,{yaw:-0.7,baseY:hp,hop:0})}
+if(t<0.9&&A&&B){const p=Math.min(1,t/0.9);const x0=Math.max(mg.x0||7,4.2);const x=x0-(x0-3.9)*p*p;A.root.position.x=-x;B.root.position.x=x;const hp=Math.abs(Math.sin(t*Math.PI*3.3))*1.6;A.update(now,{yaw:0.7,baseY:hp,hop:0});B.update(now,{yaw:-0.7,baseY:hp,hop:0})}
 else if(!mg.burst){mg.burst=true;scene.remove(A.root);scene.remove(B.root);mg.A=mg.B=null;flashEl.classList.remove('go');void flashEl.offsetWidth;flashEl.classList.add('go');
 const cs=[COLORS[decode(mg.a).c],COLORS[decode(mg.b).c],0xFFFFFF,0xFF7FA0];for(let i=0;i<34;i++)puff(cs[i%4],new THREE.Vector3(0,4,1),new THREE.Vector3((Math.random()-.5)*24,8+Math.random()*12,(Math.random()-.5)*10),1.6,18,0.55)}
 if(t>1.05&&!mg.C){const ex=S.found[mg.res.k];const C=ex&&ex.h?new P(mg.res.k,ex.st,ex.egg?3:0):new Egg(mg.res.k);scene.add(C.root);C.assemble(now);mg.C=C;cur=C;frame(C.top,C.s.w+3)}
