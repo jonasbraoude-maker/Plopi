@@ -706,7 +706,7 @@ function kScr(v3){const v=v3.clone().project(cam);const r=stageEl.getBoundingCli
 function kStart(){const v=new THREE.Vector3(0,-0.55,0.5).unproject(cam);const d=v.sub(cam.position).normalize();return cam.position.clone().add(d.multiplyScalar(21))}
 function kFrame(now){const D=dn;const dt=Math.min(0.05,(now-(D.kl||now))/1000);D.kl=now;if(!D.kH)return;
 if(D.kAmp){if(now>D.ktn){D.ktx=(Math.random()*2-1)*D.kAmp;D.kty=(Math.random()*2-1)*D.kAmp*0.5;D.ktn=now+(1100-350*D.kNz)*(0.6+Math.random()*0.8)}const sp=0.02+0.025*D.kNz;D.kox+=(D.ktx-D.kox)*sp;D.koy+=(D.kty-D.koy)*sp}
-const hp=new THREE.Vector3(D.kox,D.kHY+D.koy,4);D.kH.position.copy(hp);const pul=1+Math.sin(now/180)*0.05;D.kH.scale.setScalar(D.kShake&&now<D.kShake?1:pul);D.kH.rotation.z=D.kShake&&now<D.kShake?Math.sin(now/45)*0.25:0;D.B.root.position.x=D.kox*0.6;
+const hp=new THREE.Vector3(D.kox,D.kHY+D.koy,4);D.kH.position.copy(hp);D.kH.scale.setScalar(1);D.kH.rotation.z=D.kShake&&now<D.kShake?Math.sin(now/45)*0.25:0;D.B.root.position.x=D.kox*0.6;
 const ring=document.getElementById('kring');const [cx,cy]=kScr(hp);const [ex]=kScr(hp.clone().add(new THREE.Vector3(D.kR,0,0)));const rpx=Math.max(14,ex-cx);
 if(D.phase=='play'&&!D.kfly){const ph=((now-D.kT0)%D.kP)/D.kP;const b=Math.pow(0.5+0.5*Math.cos(2*Math.PI*ph),1.4);D.kRing=0.35+0.65*b;ring.style.display='block'}else if(D.phase!='play')ring.style.display='none';
 const rr=rpx*1.25*(D.kfly?D.kfly.ring:(D.kRing||1));ring.style.width=(rr*2)+'px';ring.style.height=(rr*2*0.92)+'px';ring.style.left=cx+'px';ring.style.top=cy+'px';
