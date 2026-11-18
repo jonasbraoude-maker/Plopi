@@ -745,13 +745,12 @@ function cArrowsUIk(){const D=dn;document.getElementById('carr').style.display='
 function kHide(){['cpad','carr','kring','klab','cghost'].forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none'});const D=dn;if(D&&D.kH){scene.remove(D.kH);if(D.kA)scene.remove(D.kA);if(D.kO)scene.remove(D.kO);D.kH=null}}
 function kScr(v3){const v=v3.clone().project(cam);const r=stageEl.getBoundingClientRect();return[(v.x+1)/2*r.width,(1-v.y)/2*r.height]}
 
-let kBgObj=null;function kBackdrop(){if(kBgObj){scene.remove(kBgObj);kBgObj=null}const g=new THREE.Group();g.userData.plopi=true;const bg=new THREE.Color(0x232a66);const C=new THREE.Color();const cells=[];
-for(let x=-30;x<=30;x+=2)for(let z=-130;z<=40;z+=2){cells.push([x,-1.6+((x*7+z*13)%5==0?0.25:0),z,(x/2+z/2)%2?0x7FCF62:0x70C257,1])}
-const tree=(x,z)=>{for(let y=0;y<5;y++)cells.push([x,0+y*2,z,0x8A5A33,0.55]);for(let dx=-2;dx<=2;dx++)for(let dz=-2;dz<=2;dz++)for(let y=0;y<3;y++){if(Math.abs(dx)+Math.abs(dz)+y>4)continue;cells.push([x+dx*2,10+y*2,z+dz*2,0x4FAE4A,0.55])}};
-tree(-26,-96);tree(24,-112);tree(-12,-128);tree(28,-74);
-for(let x=6;x<=16;x+=2)for(let z=-52;z<=-42;z+=2){if(Math.hypot(x-11,z+47)>5.5)continue;cells.push([x,-1.35,z,0x5BB6E8,1])}
-const m=new THREE.InstancedMesh(KBG,new THREE.MeshBasicMaterial(),cells.length),M=new THREE.Matrix4();
-cells.forEach((c,i)=>{M.makeScale(2,2,2);M.setPosition(c[0],c[1],c[2]);m.setMatrixAt(i,M);const dist=Math.max(0,14-c[2]);const a=0.38*Math.max(0,1-Math.max(0,14-c[2])/150)*Math.min(1,(42-c[2])/26)*c[4]*(0.92+((i*37)%9)/60);C.set(c[3]).lerp(bg,1-a);m.setColorAt(i,C)});
+let kBgObj=null;function kBackdrop(){if(kBgObj){scene.remove(kBgObj);kBgObj=null}const g=new THREE.Group();g.userData.plopi=true;const bg=new THREE.Color(0x232a66);const C=new THREE.Color();const cells=[];const Cs=5;const hsh=(a,b)=>(Math.imul(a+99,73856093)^Math.imul(b+99,19349663))>>>0;const pond={x:16,z:-60,r:9};
+for(let i=-7;i<=7;i++)for(let j=-28;j<=8;j++){const x=i*Cs,z=j*Cs,h=hsh(i,j);const inP=Math.hypot(x-pond.x,z-pond.z)<pond.r;if(inP)cells.push([x,-0.6-Cs/2-0.6,z,Cs,Cs,Cs,(h%4==0)?0x6FB8FF:0x5AA8F5]);else{cells.push([x,-0.6-Cs/2,z,Cs,Cs,Cs,[0x7BCB6A,0x6FC060,0x86D375,0x74C566][h%4]]);if(h%11==0&&z<-12){const fc=[0xFF8FB0,0xFFE066,0xFFFFFF,0xB79BFF][h%4];const fx=x+((h>>4)%3-1),fz=z+((h>>6)%3-1);cells.push([fx,0,fz,0.9,0.9,0.9,fc]);cells.push([fx,-0.45,fz,0.3,0.5,0.3,0x4E9A45])}}}
+const tree=(x,z,f)=>{for(let y=0;y<4;y++)cells.push([x,y*2+0.5,z,2,2,2,0x9C6A40]);const lc=f?[0x5DBB63,0x4FAE57]:[0x6FC060,0x5DBB63];for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++)for(let c=0;c<3;c++){if(Math.abs(a)+Math.abs(b)+c>4)continue;const h=hsh(a*7+c,b*5);cells.push([x+a*2,9+c*2,z+b*2,2,2,2,lc[h%2]])}};
+tree(-26,-96,0);tree(24,-112,1);tree(-12,-128,0);tree(28,-74,0);
+const m=new THREE.InstancedMesh(KBG,new THREE.MeshLambertMaterial(),cells.length),M=new THREE.Matrix4();
+cells.forEach((c,i)=>{M.makeScale(c[3],c[4],c[5]);M.setPosition(c[0],c[1],c[2]);m.setMatrixAt(i,M);const far=Math.max(0,-10-c[2]);const a=0.3*Math.max(0,1-far/125);C.set(c[6]).lerp(bg,1-a);m.setColorAt(i,C)});
 m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;g.add(m);scene.add(g);kBgObj=g}
 function kStart(){const v=new THREE.Vector3(0,-0.55,0.5).unproject(cam);const d=v.sub(cam.position).normalize();return cam.position.clone().add(d.multiplyScalar(21))}
 function kFrame(now){{const D0=dn;if(D0&&D0.kScore>0&&!D0.done&&D0.phase!='ktruth'){const iv=D0.kScore>=6?650:D0.kScore>=3?1200:2200;if(now-(D0.kHt||0)>iv){D0.kHt=now;heart(D0.B)}}}const D=dn;const dt=Math.min(0.05,(now-(D.kl||now))/1000);D.kl=now;if(!D.kH)return;
