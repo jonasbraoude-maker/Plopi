@@ -47,11 +47,13 @@ module.exports = async (req, res) => {
       const k = parseInt(req.query.k, 10);
       const pid = String(req.query.pid || '');
       if (!okK(k)) return res.status(400).end();
-      const [n, owners, top, rank] = await pipe([
+      const [n, owners, top, rank, , tot] = await pipe([
         ['ZCARD', 'disc:' + k],
         ['SCARD', 'own:' + k],
         ['ZRANGE', 'disc:' + k, 0, 9, 'WITHSCORES'],
         okPid(pid) ? ['ZRANK', 'disc:' + k, pid] : ['PING'],
+        okPid(pid) ? ['SADD', 'players', pid] : ['PING'],
+        ['SCARD', 'players'],
       ]);
       const pids = [], ts = [];
       for (let i = 0; i < (top || []).length; i += 2) { pids.push(top[i]); ts.push(+top[i + 1]); }
@@ -60,6 +62,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({
         n: n || 0,
         owners: owners || 0,
+        tot: tot || 0,
         rank: typeof rank === 'number' ? rank + 1 : null,
         top: pids.map((p, i) => ({ name: names[i] || null, me: p === pid, ts: ts[i] })),
       });
@@ -95,7 +98,7 @@ module.exports = async (req, res) => {
       if (!Number.isFinite(ts) || ts < MIN_TS || ts > now) ts = now;
       cmds.push(['ZADD', 'disc:' + k, 'NX', ts, pid], ['SADD', 'own:' + k, pid], ['SADD', 'pk:' + pid, k], ['SADD', 'wk', k]);
     });
-    if (cmds.length) await pipe(cmds);
+    if (cmds.length) { cmds.push(['SADD', 'players', pid]); await pipe(cmds); }
     res.status(204).end();
   } catch (e) {
     res.status(500).json({ error: String(e.message || e) });
