@@ -79,15 +79,15 @@ body.dragging,body.dragging *{touch-action:none!important;-webkit-user-select:no
 .chip{background:rgba(255,255,255,.08);border:0;color:rgba(255,255,255,.75);font:inherit;font-size:13px;padding:4px 12px;border-radius:999px}
 .chip.on{background:#fff;color:#1b2050;font-weight:700}
 .chip.pink{background:#ff6b8b;color:#fff;font-weight:700}
-#dgrid{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:4px 12px 84px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:max-content;gap:8px;align-content:start}
+#dgrid{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:4px 12px calc(100px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:max-content;gap:8px;align-content:start}
 #dgrid .card .cn{font-size:13px}
 #dgrid .card.dim{opacity:.35}
 #dgrid .card.pick{border-color:#ff6b8b;background:rgba(255,107,139,.22)}
 .pickn{position:absolute;right:5px;top:3px;background:#ff6b8b;border-radius:999px;font-size:11px;font-weight:700;width:18px;height:18px;line-height:18px}
 .lock{background:rgba(255,255,255,.04);border-radius:14px;aspect-ratio:.82;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;opacity:.55}
 .lock b{font-size:26px}
-#dact{display:none;padding:8px 12px 14px;border-top:1px solid rgba(255,255,255,.1);background:#12163a;align-items:center;gap:10px}
-#dact.on{display:flex}#dact{padding-bottom:calc(14px + env(safe-area-inset-bottom))}.dfade{position:absolute;left:0;right:0;bottom:0;height:calc(120px + env(safe-area-inset-bottom));background:linear-gradient(rgba(21,26,64,0),rgba(21,26,64,.92) 60%,#151a40);pointer-events:none;z-index:3}#dexov.sel .dfade{display:none}.dfab{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:4;border:0;border-radius:999px;background:#ff6b8b;color:#fff;font:inherit;font-weight:800;font-size:16px;padding:12px 22px;box-shadow:0 6px 18px rgba(0,0,0,.35);white-space:nowrap}
+#dact{display:flex;position:absolute;left:0;right:0;bottom:0;z-index:5;padding:8px 12px 14px;border-top:1px solid rgba(255,255,255,.1);background:#12163a;align-items:center;gap:10px;transform:translateY(105%);transition:transform .32s cubic-bezier(.2,.9,.3,1.15);box-shadow:0 -8px 24px rgba(0,0,0,.3)}
+#dact.on{transform:none}#dact{padding-bottom:calc(14px + env(safe-area-inset-bottom))}.dfade{position:absolute;left:0;right:0;bottom:0;height:calc(120px + env(safe-area-inset-bottom));background:linear-gradient(rgba(21,26,64,0),rgba(21,26,64,.92) 60%,#151a40);pointer-events:none;z-index:3}#dexov.sel .dfade{display:none}#dexov.sel .dfab{opacity:0;transform:translateX(-50%) translateY(30px) scale(.85);pointer-events:none}.dfab{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);transition:transform .25s,opacity .2s;z-index:4;border:0;border-radius:999px;background:#ff6b8b;color:#fff;font:inherit;font-weight:800;font-size:16px;padding:12px 22px;box-shadow:0 6px 18px rgba(0,0,0,.35);white-space:nowrap}
 #dact .sl{display:flex;gap:6px;flex:1;min-width:0;align-items:center;font-size:12px;line-height:1.25;height:40px}#dact .dtx{min-width:0;flex:1;margin-left:4px;overflow:hidden}#dact .dtx i{display:block;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #dact .sl img{width:40px;height:40px;flex:none;object-fit:contain;background:rgba(255,255,255,.07);border-radius:10px}
 #dact .ph{width:40px;height:40px;flex:none;border:1.5px dashed rgba(255,255,255,.3);border-radius:10px}
@@ -900,7 +900,7 @@ let h=list.map(k=>{let c=cardHTML(k);const f=S.found[k];const pi=dPick.indexOf(k
 if(!anyF())SECRETS.forEach(sc=>{if(!S.secrets[sc.n])h+='<div class="lock"><b>?</b>Recette secrète<br>#'+String(sc.num).padStart(3,'0')+'</div>'});
 dgrid.innerHTML=h||'<div style="grid-column:1/-1;text-align:center;opacity:.6;padding:30px 0">Aucun Plopi ici pour l\'instant</div>';
 updCount();
-dselb.style.display=dSel?'none':'';dexov.classList.toggle('sel',dSel);dact.classList.toggle('on',dSel);
+dexov.classList.toggle('sel',dSel);dact.classList.toggle('on',dSel);
 dslots.innerHTML=[0,1].map(i=>dPick[i]!=null?'<img src="'+thumbFor(dPick[i])+'">':'<div class="ph"></div>').join('<span>+</span>')+(dPick.length==2?'<span class="dtx"><i>'+nameOf(dPick[0])+' + '+nameOf(dPick[1])+'</i><b style="color:#ff8fb0;display:block;white-space:nowrap">♥ '+affinity(dPick[0],dPick[1])+' %'+(affinity(dPick[0],dPick[1])<50||epicChance(dPick[0],dPick[1])>=30?' ✨':'')+'</b></span>':'<span style="opacity:.6;margin-left:4px">Touche 2 Majestueux</span>');
 fuseb.disabled=dPick.length!=2}
 dgrid.addEventListener('touchstart',startPress,{passive:true});dgrid.addEventListener('mousedown',startPress);dgrid.addEventListener('contextmenu',e=>e.preventDefault());
