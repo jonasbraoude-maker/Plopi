@@ -79,7 +79,7 @@ body.dragging,body.dragging *{touch-action:none!important;-webkit-user-select:no
 .chip{background:rgba(255,255,255,.08);border:0;color:rgba(255,255,255,.75);font:inherit;font-size:13px;padding:4px 12px;border-radius:999px}
 .chip.on{background:#fff;color:#1b2050;font-weight:700}
 .chip.pink{background:#ff6b8b;color:#fff;font-weight:700}
-#dgrid{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:4px 12px 20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:max-content;gap:8px;align-content:start}
+#dgrid{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:4px 12px 84px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:max-content;gap:8px;align-content:start}
 #dgrid .card .cn{font-size:13px}
 #dgrid .card.dim{opacity:.35}
 #dgrid .card.pick{border-color:#ff6b8b;background:rgba(255,107,139,.22)}
@@ -87,11 +87,11 @@ body.dragging,body.dragging *{touch-action:none!important;-webkit-user-select:no
 .lock{background:rgba(255,255,255,.04);border-radius:14px;aspect-ratio:.82;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;opacity:.55}
 .lock b{font-size:26px}
 #dact{display:none;padding:8px 12px 14px;border-top:1px solid rgba(255,255,255,.1);background:#12163a;align-items:center;gap:10px}
-#dact.on{display:flex}
+#dact.on{display:flex}#dact{padding-bottom:calc(14px + env(safe-area-inset-bottom))}.dfab{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:4;border:0;border-radius:999px;background:#ff6b8b;color:#fff;font:inherit;font-weight:800;font-size:16px;padding:12px 22px;box-shadow:0 6px 18px rgba(0,0,0,.35);white-space:nowrap}
 #dact .sl{display:flex;gap:6px;flex:1;align-items:center;font-size:13px}
 #dact .sl img{width:46px;height:46px;object-fit:contain;background:rgba(255,255,255,.07);border-radius:10px}
 #dact .ph{width:46px;height:46px;border:1.5px dashed rgba(255,255,255,.3);border-radius:10px}
-#fuseb{border:0;border-radius:999px;font:inherit;font-weight:700;font-size:16px;padding:8px 18px;background:#ff6b8b;color:#fff}
+#fuseb{white-space:nowrap;flex:none;border:0;border-radius:999px;font:inherit;font-weight:700;font-size:16px;padding:8px 18px;background:#ff6b8b;color:#fff}
 #fuseb:disabled{opacity:.35}
 .barb{white-space:nowrap;background:rgba(255,255,255,.1);border:0;color:#fff;font:inherit;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px}
 #mini{flex:1;min-height:0;position:relative;display:none;overflow:hidden;border-radius:14px 14px 0 0;margin:2px 8px 0;background:linear-gradient(#8fd3ff,#cfeeff 60%,#e9f7ff)}
@@ -242,9 +242,9 @@ body.fs #fsx{display:block}
 <div id="garden"></div><div id="mini"></div>
 </div>
 <div id="dexov"><div class="jgrip dg"><i></i></div><div class="dh"><div><div class="t">Plopidex <span class="scoreb"></span> <div class="vtog"><button data-v="cards" class="on" aria-label="Cartes" data-l="▦ Cartes">▦ Cartes</button><button data-v="jardin" aria-label="Jardin" data-l="🌳 Jardin">🌳 Jardin</button></div></div><div class="sub" id="dcount" style="font-size:13px;opacity:.7"></div><button class="chip misb" id="misb" style="margin-top:6px">📜 Missions</button></div><button class="x" id="dclose">✕</button></div>
-<div class="dtools"><button class="chip on" data-f="all">Tous</button><button class="chip" data-f="maj">Majestueux</button><button class="chip" data-f="wake">Éveillés</button><button class="chip" data-f="trait">✨ Traits rares</button><button class="chip" data-f="gene">🧬 Gènes cachés</button></div><div class="dtools" style="padding-top:0"><button class="chip pink" id="dsel">Choisir 2 à unir</button></div>
+<div class="dtools"><button class="chip on" data-f="all">Tous</button><button class="chip" data-f="maj">Majestueux</button><button class="chip" data-f="wake">Éveillés</button><button class="chip" data-f="trait">✨ Traits rares</button><button class="chip" data-f="gene">🧬 Gènes cachés</button></div>
 <div id="trow" style="display:none"></div><div id="dgrid"></div>
-<div id="dact"><div class="sl" id="dslots"></div><button id="fuseb" disabled>Les unir 💘</button></div></div>
+<div id="dact"><button class="x" id="dcan" aria-label="Annuler">✕</button><div class="sl" id="dslots"></div><button id="fuseb" disabled>Les unir 💘</button></div><button id="dsel" class="dfab">Choisir 2 à unir 💘</button></div>
 <div id="jardin"><div id="jhost"></div><div class="jgrip"><i></i></div><div class="jtop"><div><b>Plopidex <span class="scoreb"></span> <div class="vtog"><button data-v="cards" aria-label="Cartes" data-l="▦ Cartes">▦ Cartes</button><button data-v="jardin" class="on" aria-label="Jardin" data-l="🌳 Jardin">🌳 Jardin</button></div></b></div><button id="jx" aria-label="Fermer">✕</button></div><div class="jfil"><div class="dtools"><button class="chip misb" id="jmisb">📜 Missions</button><button class="chip on" data-f="all">Tous</button><button class="chip" data-f="maj">Majestueux</button><button class="chip" data-f="wake">Éveillés</button><button class="chip" data-f="trait">✨ Traits rares</button><button class="chip" data-f="gene">🧬 Gènes cachés</button></div><div id="trow2" class="trowc" style="display:none"></div></div><div id="jlab" style="position:absolute;inset:0;pointer-events:none"></div><button id="jsign">📜 Missions</button><div id="jdst"></div><div id="jtip"><span>Lâche-le bien <b>sur</b> un Majestueux : son badge ♥ grossit quand c'est bon</span><button id="jtipok">Compris !</button></div><div id="jtoast"></div><div class="jhint"><b>Jardin de Mamalune</b> · <span id="jcount"></span></div></div><div id="traitov" style="position:fixed;inset:0;z-index:36;background:#151a40;display:none;flex-direction:column"><div class="dh"><div><div class="t">✨ Traits rares</div><div class="sub" id="tcount" style="font-size:13px;opacity:.7"></div></div><button class="x" id="tclose">✕</button></div><div id="tlist" style="flex:1;overflow-y:auto;padding:4px 12px 20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-content:start"></div></div><div id="rinfo" style="display:none"></div><div id="misov"><div class="dh"><div><div class="t">Missions</div><div class="sub" style="font-size:13px;opacity:.7">Chaque mission réussie t'offre l'œuf d'un nouveau natif</div></div><button class="x" id="mclose">✕</button></div><div id="mlist"></div></div>
 <div id="privov" style="position:fixed;inset:0;z-index:45;background:rgba(8,10,30,.85);display:none;align-items:center;justify-content:center"><div style="background:#20265c;border-radius:20px;padding:18px;width:min(88vw,360px);font-size:14px;line-height:1.45"><div style="font-size:19px;font-weight:700;margin-bottom:6px">Confidentialité</div>Plopi mesure de façon <b>anonyme</b> comment on joue (ouvertures, temps de jeu, éclosions, unions) pour améliorer le jeu. Aucun nom, aucun email, aucun cookie publicitaire : juste un numéro au hasard gardé sur cet appareil.<div style="margin:10px 0 2px;padding:8px 10px;background:rgba(255,255,255,.07);border-radius:12px"><b>Ton pseudo</b> (facultatif) : <span id="pseudov"></span><br><small style="opacity:.7">Affiché dans les classements « premiers découvreurs ». Sans pseudo, tu apparais comme « Anonyme ».</small><button class="bt bt2" id="pseudob" style="width:100%;margin-top:6px">Choisir un pseudo</button></div><div id="privst" style="margin:10px 0;opacity:.8"></div><button class="bt bt2" id="privtest" style="width:100%;margin-bottom:8px;display:none">Compter cet appareil comme un joueur normal</button><button class="bt bt1" id="privtog" style="width:100%;margin-top:4px"></button><button class="bt bt2" id="privclose" style="width:100%;margin-top:8px">Fermer</button></div></div>
 <div id="fiche"><div class="dh"><button class="x" id="fback">‹</button><div class="t" style="font-size:17px">Fiche</div><button class="x" id="fclose">✕</button></div><div id="fbody"></div></div>
@@ -898,7 +898,7 @@ let h=list.map(k=>{let c=cardHTML(k);const f=S.found[k];const pi=dPick.indexOf(k
 if(!anyF())SECRETS.forEach(sc=>{if(!S.secrets[sc.n])h+='<div class="lock"><b>?</b>Recette secrète<br>#'+String(sc.num).padStart(3,'0')+'</div>'});
 dgrid.innerHTML=h||'<div style="grid-column:1/-1;text-align:center;opacity:.6;padding:30px 0">Aucun Plopi ici pour l\'instant</div>';
 document.getElementById('dcount').textContent=S.order.length+' découverts · '+S.order.filter(k=>S.found[k].st==2&&!S.found[k].egg).length+' Majestueux · recettes '+Object.keys(S.secrets).length+'/'+SECRETS.length;
-dselb.textContent=dSel?'Annuler la sélection':'Choisir 2 à unir 💘';dact.classList.toggle('on',dSel);
+dselb.style.display=dSel?'none':'';dact.classList.toggle('on',dSel);
 dslots.innerHTML=[0,1].map(i=>dPick[i]!=null?'<img src="'+thumbFor(dPick[i])+'">':'<div class="ph"></div>').join('<span>+</span>')+(dPick.length==2?'<span style="margin-left:4px">'+nameOf(dPick[0])+' + '+nameOf(dPick[1])+'<br><b style="color:#ff8fb0">♥ affinité '+affinity(dPick[0],dPick[1])+' %'+(affinity(dPick[0],dPick[1])<50||epicChance(dPick[0],dPick[1])>=30?' ✨':'')+'</b></span>':'<span style="opacity:.6;margin-left:4px">Touche 2 Majestueux</span>');
 fuseb.disabled=dPick.length!=2}
 dgrid.addEventListener('touchstart',startPress,{passive:true});dgrid.addEventListener('mousedown',startPress);dgrid.addEventListener('contextmenu',e=>e.preventDefault());
@@ -907,7 +907,7 @@ if(!dSel){const again=S.sel===k;closeDex();if(again&&hugOk(k)&&cur&&cur.k===k)hu
 if(S.found[k].st<2||S.found[k].egg){toast(funFor(k)||'');return}if(busyWith(k)){toast(busyTxt(k));return}
 if(dPick.length==1&&dPick[0]!==k){const kb=kinOf(dPick[0],k);if(kb){toast(kinTxt(dPick[0],k,kb));return}}const i=dPick.indexOf(k);if(i>=0)dPick.splice(i,1);else{if(dPick.length==2)dPick.shift();dPick.push(k)}renderDex()});
 document.querySelectorAll('.dtools .chip[data-f]').forEach(b=>b.onclick=()=>{const f=b.dataset.f;if(f=='all'){dF.maj=dF.wake=dF.trait=dF.gene=false}else{dF[f]=!dF[f];if(f=='trait'&&dF.trait)dT=new Set(RTRAITS.map((t,i)=>i).filter(i=>traitFound(RTRAITS[i])!=null))}syncChips();renderDex()});
-dselb.onclick=()=>{dSel=!dSel;dPick=[];if(dSel&&dFilter=='all'){}renderDex()};
+dselb.onclick=()=>{dSel=true;dPick=[];renderDex()};document.getElementById('dcan').onclick=()=>{dSel=false;dPick=[];renderDex()};
 document.getElementById('dclose').onclick=()=>{closeDex();setHalf()};
 document.getElementById('expb').onclick=openFull;
 document.querySelectorAll('#bartog button').forEach(b=>b.onclick=e=>{e.stopPropagation();S.dexV=b.dataset.v;save();setHalf()});
