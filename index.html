@@ -88,9 +88,9 @@ body.dragging,body.dragging *{touch-action:none!important;-webkit-user-select:no
 .lock b{font-size:26px}
 #dact{display:none;padding:8px 12px 14px;border-top:1px solid rgba(255,255,255,.1);background:#12163a;align-items:center;gap:10px}
 #dact.on{display:flex}#dact{padding-bottom:calc(14px + env(safe-area-inset-bottom))}.dfab{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:4;border:0;border-radius:999px;background:#ff6b8b;color:#fff;font:inherit;font-weight:800;font-size:16px;padding:12px 22px;box-shadow:0 6px 18px rgba(0,0,0,.35);white-space:nowrap}
-#dact .sl{display:flex;gap:6px;flex:1;align-items:center;font-size:13px}
-#dact .sl img{width:46px;height:46px;object-fit:contain;background:rgba(255,255,255,.07);border-radius:10px}
-#dact .ph{width:46px;height:46px;border:1.5px dashed rgba(255,255,255,.3);border-radius:10px}
+#dact .sl{display:flex;gap:6px;flex:1;min-width:0;align-items:center;font-size:12px;line-height:1.25;height:40px}#dact .dtx{min-width:0;flex:1;margin-left:4px;overflow:hidden}#dact .dtx i{display:block;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dact .sl img{width:40px;height:40px;flex:none;object-fit:contain;background:rgba(255,255,255,.07);border-radius:10px}
+#dact .ph{width:40px;height:40px;flex:none;border:1.5px dashed rgba(255,255,255,.3);border-radius:10px}
 #fuseb{white-space:nowrap;flex:none;border:0;border-radius:999px;font:inherit;font-weight:700;font-size:16px;padding:8px 18px;background:#ff6b8b;color:#fff}
 #fuseb:disabled{opacity:.35}
 .barb{white-space:nowrap;background:rgba(255,255,255,.1);border:0;color:#fff;font:inherit;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px}
@@ -901,7 +901,7 @@ if(!anyF())SECRETS.forEach(sc=>{if(!S.secrets[sc.n])h+='<div class="lock"><b>?</
 dgrid.innerHTML=h||'<div style="grid-column:1/-1;text-align:center;opacity:.6;padding:30px 0">Aucun Plopi ici pour l\'instant</div>';
 updCount();
 dselb.style.display=dSel?'none':'';dact.classList.toggle('on',dSel);
-dslots.innerHTML=[0,1].map(i=>dPick[i]!=null?'<img src="'+thumbFor(dPick[i])+'">':'<div class="ph"></div>').join('<span>+</span>')+(dPick.length==2?'<span style="margin-left:4px">'+nameOf(dPick[0])+' + '+nameOf(dPick[1])+'<br><b style="color:#ff8fb0">♥ affinité '+affinity(dPick[0],dPick[1])+' %'+(affinity(dPick[0],dPick[1])<50||epicChance(dPick[0],dPick[1])>=30?' ✨':'')+'</b></span>':'<span style="opacity:.6;margin-left:4px">Touche 2 Majestueux</span>');
+dslots.innerHTML=[0,1].map(i=>dPick[i]!=null?'<img src="'+thumbFor(dPick[i])+'">':'<div class="ph"></div>').join('<span>+</span>')+(dPick.length==2?'<span class="dtx"><i>'+nameOf(dPick[0])+' + '+nameOf(dPick[1])+'</i><b style="color:#ff8fb0;display:block;white-space:nowrap">♥ '+affinity(dPick[0],dPick[1])+' %'+(affinity(dPick[0],dPick[1])<50||epicChance(dPick[0],dPick[1])>=30?' ✨':'')+'</b></span>':'<span style="opacity:.6;margin-left:4px">Touche 2 Majestueux</span>');
 fuseb.disabled=dPick.length!=2}
 dgrid.addEventListener('touchstart',startPress,{passive:true});dgrid.addEventListener('mousedown',startPress);dgrid.addEventListener('contextmenu',e=>e.preventDefault());
 dgrid.addEventListener('click',e=>{if(Date.now()-(window._noClick||0)<400)return;const c=e.target.closest('.card');if(!c)return;const k=+c.dataset.k;
