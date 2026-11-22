@@ -6,6 +6,7 @@ const ALPH = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sans 0/O ni 1/I
 const okCode = (c) => /^PLOP-[A-Z2-9]{4}-[A-Z2-9]{4}$/.test(c || '');
 const okPid = (p) => /^[a-z0-9]{8,40}$/.test(p || '');
 const MAX = 900000; // ~900 ko
+const TTL = 2 * 365 * 24 * 3600; // effacée après 2 ans sans jouer
 
 function newCode() {
   let s = 'PLOP-';
@@ -31,6 +32,13 @@ module.exports = async (req, res) => {
     if (req.method !== 'POST') return res.status(405).end();
     let b = req.body;
     if (typeof b === 'string') b = JSON.parse(b || '{}');
+    // Suppression à la demande du joueur (le code fait office de clé)
+    if (b && b.del) {
+      const c = String(b.code || '').toUpperCase().trim();
+      if (!okCode(c)) return res.status(400).json({ error: 'code' });
+      await pipe([['DEL', 'save:' + c]]);
+      return res.status(200).json({ ok: true });
+    }
     const pid = String((b && b.pid) || '');
     const data = String((b && b.data) || '');
     const ts = Number(b && b.ts) || Date.now();
@@ -41,7 +49,7 @@ module.exports = async (req, res) => {
     if (!code) {
       for (let t = 0; t < 8 && !code; t++) {
         const c = newCode();
-        const [ok] = await pipe([['SET', 'save:' + c, JSON.stringify({ ts, pid, data }), 'NX']]);
+        const [ok] = await pipe([['SET', 'save:' + c, JSON.stringify({ ts, pid, data }), 'NX', 'EX', TTL]]);
         if (ok === 'OK') code = c;
       }
       if (!code) return res.status(500).json({ error: 'code indisponible' });
@@ -52,7 +60,7 @@ module.exports = async (req, res) => {
       const o = JSON.parse(raw);
       if (o.ts > ts) return res.status(409).json({ error: 'plus récent', ts: o.ts });
     }
-    await pipe([['SET', 'save:' + code, JSON.stringify({ ts, pid, data })]]);
+    await pipe([['SET', 'save:' + code, JSON.stringify({ ts, pid, data }), 'EX', TTL]]);
     return res.status(200).json({ code, ts });
   } catch (e) {
     return res.status(500).json({ error: String(e.message || e) });
