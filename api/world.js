@@ -4,6 +4,7 @@ const { pipe } = require('./_redis');
 const BAD = ['con', 'pute', 'merde', 'encul', 'nique', 'salop', 'bite', 'couill', 'fuck', 'shit', 'nazi', 'hitler', 'connard', 'batard', 'bitch', 'porn', 'sex', 'pd', 'negr', 'nègr'];
 const okPid = (p) => /^[a-z0-9]{8,40}$/.test(p || '');
 const okK = (k) => Number.isInteger(k) && k >= 1 && k <= 500000;
+const okL = (k) => Number.isInteger(k) && k >= 1 && k <= 20000;
 const MIN_TS = Date.UTC(2026, 0, 1);
 
 // Clé d'unicité : sans majuscules ni accents
@@ -42,6 +43,19 @@ module.exports = async (req, res) => {
       const [owner] = await pipe([['HGET', 'psname', normPs(ps)]]);
       if (owner && owner !== pid) return res.status(200).json({ ok: false, why: 'pris' });
       return res.status(200).json({ ok: true, ps });
+    }
+    if (req.method === 'GET' && 'lands' in req.query) {
+      // Index des Plopiland : nombre de joueurs et « premier au monde »
+      const pid = String(req.query.pid || '');
+      const ids = String(req.query.lands || '').split(',').map((x) => parseInt(x, 10)).filter(okL).slice(0, 60);
+      const cmds = [];
+      ids.forEach((id) => { cmds.push(['ZCARD', 'land:' + id]); cmds.push(okPid(pid) ? ['ZRANK', 'land:' + id, pid] : ['PING']); });
+      cmds.push(['SCARD', 'lands']);
+      const r = await pipe(cmds);
+      const L = {};
+      ids.forEach((id, i) => { const n = r[i * 2] || 0, rk = r[i * 2 + 1]; L[id] = { n, first: rk === 0 }; });
+      res.setHeader('Cache-Control', 'no-store');
+      return res.status(200).json({ L, tot: r[r.length - 1] || 0 });
     }
     if (req.method === 'GET') {
       const k = parseInt(req.query.k, 10);
@@ -88,6 +102,18 @@ module.exports = async (req, res) => {
       return res.status(200).json({ pseudo: ps });
     }
 
+    if (Array.isArray(b.lands)) {
+      const now = Date.now(), cmds = [];
+      b.lands.slice(0, 60).forEach((it) => {
+        const id = parseInt(it && it.id, 10);
+        if (!okL(id)) return;
+        let ts = +it.ts;
+        if (!Number.isFinite(ts) || ts < MIN_TS || ts > now) ts = now;
+        cmds.push(['ZADD', 'land:' + id, 'NX', ts, pid], ['SADD', 'lands', id]);
+      });
+      if (cmds.length) await pipe(cmds);
+      return res.status(204).end();
+    }
     const items = Array.isArray(b.items) ? b.items.slice(0, 150) : [];
     const now = Date.now();
     const cmds = [];
