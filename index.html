@@ -860,7 +860,7 @@ const misov=document.getElementById('misov');
 function misProg(){const Q=S.wqs||{},qs=Object.values(Q);const a=MISSIONS.filter(m=>S.found[natK(m.n)]).length,b=BMIS.filter(m=>(S.bm||{})[m.id]).length,c=qs.filter(q=>S.found[q.k]&&S.found[q.k].h).length;let dn=0,tn=0;try{const n=0;for(let w=1;w<n;w++){wNatInit(w);(S.wnat[w]||[]).forEach(x=>{tn++;if(S.found[x.k])dn++})}}catch(e){}return(a+b+c+dn)/Math.max(1,MISSIONS.length+BMIS.length+qs.length+tn)}
 function misTxt(){return '📜 Missions'}
 function misUpd(){const p=Math.round(misProg()*100);document.querySelectorAll('.misb').forEach(e=>{e.textContent='📜 Missions';e.style.setProperty('--mp',p+'%')})}
-function openMissions(){if(S.misNew){S.misNew=0;save();document.getElementById('expb').classList.remove('new')}
+function openMissions(){S.misD=0;if(S.misNew){S.misNew=0;save();document.getElementById('expb').classList.remove('new')}
 const CW=(J&&!J.mini)?curW():(typeof dW!='undefined'&&dW>=0?dW:-1);const IT=[];const add=(cat,w,done,html)=>IT.push({cat,w,done,html});
 const RW=(img,body,right,done)=>'<div class="mrow">'+img+'<div class="mt">'+body+'</div><div class="ms'+(done?'':' no')+'">'+right+'</div></div>';
 {const n=nWorlds();let fill=0;for(let w=0;w<n;w++)fill+=Math.min(WCAP,wCount(w));const cap=n*WCAP,left=Math.max(0,cap-fill),p=Math.round(100*fill/cap);add('mondes',null,false,RW('<div class="lk2" style="opacity:1">🌍</div>','<b>Ouvre un nouveau monde</b><br>Remplis tes mondes : encore '+left+' place'+(left>1?'s':'')+' avant que des explorateurs partent en découvrir un '+(n+1)+'<sup>e</sup><div class="mbar"><i style="width:'+p+'%"></i></div>',fill+'/'+cap,false))}
