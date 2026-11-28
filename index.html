@@ -1263,7 +1263,7 @@ dgrid.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.blk')
 dgrid.addEventListener('click',e=>{if(Date.now()-(window._noClick||0)<400)return;const c=e.target.closest('.card');if(!c)return;const k=+c.dataset.k;
 if(!dSel){const again=S.sel===k;closeDex();if(again&&hugOk(k)&&cur&&cur.k===k)hugSel(k);else select(k);return}
 if(S.found[k].st<2||S.found[k].egg){toast(funFor(k)||'');return}if(busyWith(k)){toast(busyTxt(k));return}
-if(dPick.length==1&&dPick[0]!==k){const kb=pairBlock(dPick[0],k);if(kb){toast(kinTxt(dPick[0],k,kb));return}}const i=dPick.indexOf(k);if(i>=0)dPick.splice(i,1);else{if(dPick.length==2)dPick.shift();dPick.push(k)}renderDex()});
+if(dPick.length>=1&&!dPick.includes(k)){const kb=pairBlock(dPick[0],k);if(kb){toast(kinTxt(dPick[0],k,kb));return}}const i=dPick.indexOf(k);if(i>=0)dPick.splice(i,1);else{if(dPick.length==2)dPick.pop();dPick.push(k)}renderDex()});
 document.querySelectorAll('.dtools .chip[data-f]').forEach(b=>b.onclick=()=>{const f=b.dataset.f;if(f=='uni'){flMenu(b);return}if(f=='all'){dF.need=dF.uni=dF.trait=dF.gene=dF.all2=dF.chr=false}else{dF[f]=!dF[f];if(f=='all2'&&dF.all2)dA=new Set();if(f=='chr'&&dF.chr)dC=new Set();if(f=='trait'&&dF.trait)dT=new Set()}syncChips();renderDex();if(J&&!J.mini){if(J.focusK!=null)jUnfocus();if(anyF()&&J.reu&&J.follow===J.reu.R.k){J.follow=null;if(J.dist0!=null){J.dist=J.dist0;J.dist0=null}}J.lastIn=performance.now()}});
 dselb.onclick=()=>{dSel=true;dPick=[];renderDex()};document.getElementById('dcan').onclick=()=>{dSel=false;dPick=[];renderDex()};
 document.getElementById('dclose').onclick=()=>{closeDex();setHalf()};
