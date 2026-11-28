@@ -624,22 +624,23 @@ function puff(color,pos,vel,life,grav,size){const m=new THREE.MeshLambertMateria
 const ZPAT=[[0,4],[1,4],[2,4],[3,4],[3,3],[2,2],[1,1],[0,0],[1,0],[2,0],[3,0]];
 function zGroup(m,sc){const g=new THREE.Group();ZPAT.forEach(([a,b])=>{const c=new THREE.Mesh(HG,m);c.position.set((a-1.5)*0.5,(b-2)*0.5,0);g.add(c)});g.scale.setScalar(sc||1);return g}
 function zzz(p){const m=new THREE.MeshLambertMaterial({color:0xCFE6FF,transparent:true});const g=zGroup(m,0.8+Math.random()*0.5);g.position.set(p.s.w*0.6+1,p.top*0.85,3);scene.add(g);parts.push({o:g,m,v:new THREE.Vector3(1.2,2.6,0),t0:performance.now(),life:2.4,grav:-0.3,spin:0})}
-function celebrate(k){if(!cur||cur.k!==k)return;const p=cur,g=decode(k),ch=charOf(k),now=performance.now();const C=COLORS[g.c]||0xFF8CB9;const top=p.top,x0=p.root.position.x;const R=()=>Math.random()-0.5;
-const V=(x,y,z)=>new THREE.Vector3(x,y,z);const at=(ms,f)=>setTimeout(()=>{if(cur===p)f()},ms);
+function celebrate(k){if(!cur||cur.k!==k)return;celRun(cur,k,cur.root.position.x,0,(c,pos,v,life,grav,sz)=>puff(c,pos,v,life,grav,sz),()=>cur===cur,1)}
+function celRun(p,k,x0,z0,EM,ok,main){const g=decode(k),ch=charOf(k),now=performance.now();const C=COLORS[g.c]||0xFF8CB9;const top=p.top;const R=()=>Math.random()-0.5;
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);const at=(ms,f)=>setTimeout(()=>{if(main?cur===p:(J&&J.A))f()},ms);
 p.cel={t0:now,ch};p.happyEnd=now+2600;if(ch==1||ch==2||ch==0)p.blushEnd=now+2600;p.st=null;
 // mouvement du caractère
 if(ch==0){p.hopT=now;at(250,()=>p.spinT=performance.now());at(700,()=>{p.hopT=performance.now()});at(950,()=>p.spinT=performance.now());at(1500,()=>p.hopT=performance.now())}
 else if(ch==1){at(1100,()=>p.hopT=performance.now());at(1500,()=>p.hopT=performance.now())}
-else if(ch==2){for(let i=0;i<6;i++)at(200+i*220,()=>heart(p));at(1500,()=>p.hopT=performance.now())}
+else if(ch==2){for(let i=0;i<6;i++)at(200+i*220,()=>{if(main)heart(p);else EM(0xFF7FA0,V(x0+R()*4,top*0.8,z0+R()*4),V(R()*2,6,R()*2),1.4,0,0.7)});at(1500,()=>p.hopT=performance.now())}
 else if(ch==3){for(let i=0;i<4;i++)at(i*230,()=>{p.sqT=performance.now();p.sqA=0.9});at(1300,()=>{p.hopT=performance.now()})}
 else if(ch==4){at(300,()=>p.bowT=performance.now());at(1300,()=>p.hopT=performance.now())}
 else{at(1200,()=>p.hopT=performance.now())}
 // effets des traits
 const hd=g.h,bd=g.b;const FX=(t,f)=>at(t,f);
-const burst=(n,col,vy,spread,life,grav,sz,y)=>{for(let i=0;i<Math.round(n*1.5);i++)puff(col,V(x0+R()*spread*1.6,Math.min(y!=null?y:top*0.5,top*0.6),7+R()*2),V(R()*spread*2.2,vy*0.45*(0.8+Math.random()*0.7),R()*2),life*1.2,grav,sz*2)};
+const burst=(n,col,vy,spread,life,grav,sz,y)=>{for(let i=0;i<Math.round(n*1.5);i++)EM(col,V(x0+R()*spread*1.6,Math.min(y!=null?y:top*0.5,top*0.6),z0+(main?7:0)+R()*2),V(R()*spread*2.2,vy*0.45*(0.8+Math.random()*0.7),R()*(main?2:spread*2.2)),life*1.2,grav,sz*2)};
 FX(1400,()=>{
  if(hd==3)burst(18,0xFF7A2A,12,4,1.1,-2,0.45);
- else if(hd==6){for(let i=0;i<30;i++)puff(0x6FB8FF,V(x0+R()*14,top*0.75+Math.random()*2,7),V(0,-12,0),1,0,0.4)}
+ else if(hd==6){for(let i=0;i<30;i++)EM(0x6FB8FF,V(x0+R()*14,top*0.75+Math.random()*2,z0+(main?7:R()*14)),V(0,-12,0),1,0,0.4)}
  else if(hd==1)burst(16,0xFFFFFF,6,8,1.6,-3,0.3,top+2);
  else if(hd==2)burst(14,0x6FC060,8,6,1.4,8,0.4);
  else if(hd==4)burst(20,0xFFD95A,10,6,1.2,6,0.35);
@@ -655,8 +656,8 @@ FX(1400,()=>{
 });
 // final selon la rareté
 const nR=['h','b','i','e','c'].filter(q=>MUT[q].includes(g[q])).length;
-if(nR)FX(1900,()=>{for(let i=0;i<10+nR*8;i++){const a=i/(10+nR*8)*Math.PI*2;puff(nR>=3?0xFFD95A:nR==2?0xFF8FD0:0x7FD8FF,V(x0,top*0.45,7),V(Math.cos(a)*(8+nR*2),Math.sin(a)*(8+nR*2),0),1,0,0.32)}});
-at(2700,()=>{p.cel=null});try{tone&&[0,2,4].forEach((n,i)=>setTimeout(()=>tone(n,0.18),1400+i*120))}catch(e){}}
+if(nR)FX(1900,()=>{for(let i=0;i<10+nR*8;i++){const a=i/(10+nR*8)*Math.PI*2;EM(nR>=3?0xFFD95A:nR==2?0xFF8FD0:0x7FD8FF,V(x0,top*0.45,z0+(main?7:0)),V(Math.cos(a)*(8+nR*2),Math.sin(a)*(8+nR*2),0),1,0,0.32)}});
+at(2700,()=>{p.cel=null});if(main)try{[0,2,4].forEach((n,i)=>setTimeout(()=>tone(n,0.18),1400+i*120))}catch(e){}}
 
 function heart(p){const grp=new THREE.Group();const hm=new THREE.MeshLambertMaterial({color:0xFF7FA0,transparent:true});[[-1,1],[1,1],[-1,0],[0,0],[1,0],[0,-1]].forEach(([a,b])=>{const c=new THREE.Mesh(HG,hm);c.position.set(a*0.5,b*0.5,0);grp.add(c)});grp.position.set(p.root.position.x+Math.random()*8-4,p.top*0.7,5);scene.add(grp);parts.push({o:grp,m:hm,v:new THREE.Vector3((Math.random()-.5)*2,6,0),t0:performance.now(),life:1.4,grav:0,spin:3})}
 // ================= miniatures =================
@@ -1381,7 +1382,8 @@ function jMis(m){let el=document.getElementById('jmis');if(!el){el=document.crea
 function jGuide(t,ms){let g=jarHost.querySelector('.jguide');if(!g){g=document.createElement('div');g.className='jguide';jarHost.appendChild(g)}g.innerHTML=t;g.classList.add('on');clearTimeout(g._t);g._t=setTimeout(()=>g.classList.remove('on'),ms||3500)}
 function jCel(t,sub,ms){let el=document.getElementById('jcel');if(!el){el=document.createElement('div');el.id='jcel';jarEl.appendChild(el)}el.innerHTML='<b>'+t+'</b>'+sub;requestAnimationFrame(()=>el.classList.add('on'));clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),ms)}
 const eOB=p=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2)};const eBo=p=>{const n=7.5625,d=2.75;if(p<1/d)return n*p*p;if(p<2/d)return n*(p-=1.5/d)*p+0.75;if(p<2.5/d)return n*(p-=2.25/d)*p+0.9375;return n*(p-=2.625/d)*p+0.984375};
-function jParty(now){J.A.forEach((a,i)=>{if(a.md==3)return;setTimeout(()=>{if(!J)return;const t=performance.now();a.p.hopT=t;a.p.happyEnd=t+1500;if(a.st==2)a.p.bowT=t;jHeart(a,1)},i%6*90)});const CC=[0xFF6B8B,0xFFE27A,0x7FB8FF,0x7FE0A0,0xB79BFF,0xFF9A3C];for(let i=0;i<70;i++){const m=new THREE.MeshBasicMaterial({color:CC[i%6],transparent:true});const c=new THREE.Mesh(HG,m);const t=Math.random()*6.28,r=Math.random()*J.R*0.6;c.position.set(Math.cos(t)*r,2+Math.random()*4,Math.sin(t)*r);c.scale.setScalar(1.4);J.sc.add(c);J.parts.push({o:c,m,v:new THREE.Vector3((Math.random()-.5)*8,10+Math.random()*12,(Math.random()-.5)*8),t0:now,life:2+Math.random(),face:true})}}
+const jEM=(c,pos,v,life,grav,sz)=>{if(!J)return;const m=new THREE.MeshLambertMaterial({color:c,transparent:true});const o=new THREE.Mesh(GEO,m);o.scale.setScalar(sz||0.5);o.position.copy(pos);J.sc.add(o);J.parts.push({o,m,v,t0:performance.now(),life})};
+function jParty(now){J.A.forEach((a,i)=>{if(a.md==3)return;const fete=a.st>=1&&!a.f.egg&&Math.random()<0.5;setTimeout(()=>{if(!J)return;const t=performance.now();if(fete){try{celRun(a.p,a.k,a.x,a.z,jEM,null,0)}catch(e){}return}a.p.hopT=t;a.p.happyEnd=t+1500;if(a.st==2)a.p.bowT=t;jHeart(a,1)},fete?(i%8)*260:i%6*90)});const CC=[0xFF6B8B,0xFFE27A,0x7FB8FF,0x7FE0A0,0xB79BFF,0xFF9A3C];for(let i=0;i<70;i++){const m=new THREE.MeshBasicMaterial({color:CC[i%6],transparent:true});const c=new THREE.Mesh(HG,m);const t=Math.random()*6.28,r=Math.random()*J.R*0.6;c.position.set(Math.cos(t)*r,2+Math.random()*4,Math.sin(t)*r);c.scale.setScalar(1.4);J.sc.add(c);J.parts.push({o:c,m,v:new THREE.Vector3((Math.random()-.5)*8,10+Math.random()*12,(Math.random()-.5)*8),t0:now,life:2+Math.random(),face:true})}}
 function jRingAt(mR,t,dur){const G=mR.userData.G;if(!G)return;const d0=new THREE.Object3D();G.forEach(([x,y,z,sx,sy,sz],i)=>{const dl=((Math.atan2(z,x)+Math.PI)/(2*Math.PI))*dur+((i*37)%7)*0.02;const q=Math.max(0,Math.min(1,(t-dl)/0.45));d0.position.set(x,y-40*(1-eOB(q)),z);d0.scale.set(sx,sy,sz);d0.updateMatrix();mR.setMatrixAt(i,d0.matrix)});mR.instanceMatrix.needsUpdate=true}
 function jCelTick(now){const c=J.cel;const t=(now-c.t0)/1000;if(t<0)return;if(c.mR&&t<2.6)jRingAt(c.mR,t,2.0);if(c.mD){const q=Math.max(0,Math.min(1,(t-2.4)/1.1));c.mD.position.y=70*(1-eBo(q))}if(t>3.5&&!c.party){c.party=1;jParty(now)}if(t>5.6){if(c.mR)jRingAt(c.mR,99,2.0);if(c.mD)c.mD.position.y=0;J.cel=null}}
 function jCelSkip(){if(!J||!J.cel)return;const c=J.cel;if(c.mR)jRingAt(c.mR,99,2.0);if(c.mD)c.mD.position.y=0;if(!c.party)jParty(performance.now());J.cel=null;const el=document.getElementById('jcel');if(el)el.classList.remove('on')}
